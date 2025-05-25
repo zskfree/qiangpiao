@@ -1,34 +1,33 @@
 # 配置文件
 from datetime import datetime, timedelta
 
+current_date = datetime.now()
+# 计算目标日期（当前日期 + 1 天）
+target_date = current_date + timedelta(days=1)
+# 格式化目标日期为字符串
+target_date = target_date.strftime('%Y-%m-%d')
+
 # 基础配置
 CONFIG = {
     # 查询参数
-    "XQ": "1",        # 校区：1=粤海, 2=丽湖
+    "XQ": "2",        # 校区：1=粤海, 2=丽湖
     "YYLX": "1.0",    # 预约类型
     "XMDM": "001",    # 项目代码：001=羽毛球
     
     # 运行参数
     "MAX_RETRY_TIMES": 200,    # 最大重试次数
-    "RETRY_INTERVAL": 2,       # 重试间隔（秒）
+    "RETRY_INTERVAL": 1,       # 重试间隔（秒）
     "REQUEST_TIMEOUT": 10,     # 请求超时时间（秒）
-    # 预约日期（明天，避免时间冲突）
-    "TARGET_DATE": "2025-05-26",  # 修改为明天的日期
+    # 预约日期
+    "TARGET_DATE": target_date,
     
-    # 优先预约的时段关键词（按优先级排序）- 增加更多选择
-    "PREFERRED_TIMES": [
-        "12:00-13:00",  # 最高优先级
-        "13:00-14:00",  # 次高优先级
-        # "19:00-20:00",  # 备选1
-        # "20:00-21:00",  # 备选2
-        # "18:00-19:00",  # 备选3
-        # "21:00-22:00"   # 备选4
-    ],
+    # 优先预约的时段关键词（按优先级排序）
+    "PREFERRED_TIMES": ['20:00-21:00', '21:00-22:00'],
     
-    # 用户信息配置 - 请根据实际情况修改
+    # 用户信息配置
     "USER_INFO": {
-        "YYRGH": "2300123009",  # 学号/工号 - 请修改为真实值
-        "YYRXM": "朱尚昆"       # 姓名 - 请修改为真实值
+        "YYRGH": "2300123009",  # 学号/工号
+        "YYRXM": "朱尚昆"   # 姓名
     }
 }
 

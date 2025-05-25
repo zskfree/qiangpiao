@@ -5,10 +5,21 @@ import time
 from datetime import datetime
 import requests
 import urllib3
-from qiangpiao import session, headers, CONFIG
+import logging
 
 # 禁用SSL警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# 导入配置和session
+try:
+    from qiangpiao import session, headers, CONFIG
+except ImportError:
+    # 如果无法导入，创建基本的session
+    session = requests.Session()
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    }
+    CONFIG = {"REQUEST_TIMEOUT": 10}
 
 def extract_cookies_from_text(cookie_text):
     """从文本中提取并解析Cookie"""

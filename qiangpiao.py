@@ -14,7 +14,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # 导入配置
 try:
-    from config import CONFIG, COOKIE
+    from config import CONFIG
 except ImportError:
     print("❌ 配置文件导入失败，请确保config.py文件存在且配置正确")
     exit(1)
@@ -45,9 +45,10 @@ session.mount('https://', SSLAdapter())
 
 
 raw_cookie = """
-EMAP_LANG=zh; _WEU=IdnBR4ockcki6ktTG9BrwKKtFsD_C*1*O9sHu6OztQ3BafDHh5T*2bi4Kbld*i3uLC*8GMHzBVmIhceMOCtFP1OWYKB7Q*P*ybEHI6Tcg9yONau8ue3iQLLmF7xpvCx3EO5v42wIda71YUISVfoB6SUrVgwNDPaT*cbHLkRkhiUjolNIYOlj9HlE6ewoojpkosTPIXedq7rkusT0NiJ6fePIkamCIr6XkVYlBH5wYd4BSzcIabRueYi7mgx_zh6g; amp.locale=undefined; insert_cookie=38189586; MOD_AUTH_CAS=MOD_AUTH_ST-689773-j01P1D8O3sDMcmYUroe8KfkGFUIciapserver2; asessionid=6417a6f1-00d6-4b12-8bff-5ecce3d62401; route=4c37e2ddc40281383dbb747bc4412a28
+EMAP_LANG=zh; 
 """
 
+# 解析Cookie字符串
 cookies = {}
 for item in raw_cookie.strip().split("; "):
     key, value = item.split("=", 1)
@@ -736,3 +737,97 @@ if __name__ == "__main__":
         print_statistics(retry_count, start_time)
     
     input("\n按回车键退出...")
+
+    
+def extract_cookies_from_text(cookie_text):
+    """从文本中提取并解析Cookie"""
+    cookies = {}
+    
+    # 处理不同格式的Cookie字符串
+    cookie_text = cookie_text.strip()
+    
+    # 如果是浏览器复制的格式（分号分隔）
+    if ';' in cookie_text:
+        for item in cookie_text.split(';'):
+            item = item.strip()
+            if '=' in item:
+                key, value = item.split('=', 1)
+                cookies[key.strip()] = value.strip()
+    
+    # 如果是多行格式
+    elif '\n' in cookie_text:
+        for line in cookie_text.split('\n'):
+            line = line.strip()
+            if '=' in line and not line.startswith('#'):
+                key, value = line.split('=', 1)
+                cookies[key.strip()] = value.strip()
+    
+    return cookies
+
+def test_cookie_validity(cookies_dict):
+    """测试Cookie是否有效"""
+    try:
+        resp = session.get(
+            "https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do",
+            headers=headers,
+            cookies=cookies_dict,
+            verify=False,
+            timeout=10
+        )
+        
+        # 检查响应
+        if resp.status_code == 200:
+            if "登录" in resp.text or "login" in resp.text.lower():
+                return False, "需要重新登录"
+            elif "体育场馆" in resp.text or "sportVenue" in resp.text:
+                return True, "Cookie有效"
+            else:
+                return False, "页面内容异常"
+        elif resp.status_code == 403:
+            return False, "访问被拒绝"
+        else:
+            return False, f"HTTP错误: {resp.status_code}"
+            
+    except Exception as e:
+        return False, f"测试失败: {e}"
+
+def update_cookie_in_file(new_cookie_text):
+    """更新文件中的Cookie"""
+    try:
+        # 读取原文件
+        with open('qiangpiao.py', 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # 替换cookie
+        start_marker = 'raw_cookie = """'
+        end_marker = '"""'
+        
+        start_idx = content.find(start_marker)
+        if start_idx == -1:
+            logging.error("未找到cookie位置！")
+            return False
+        
+        start_idx += len(start_marker)
+        end_idx = content.find(end_marker, start_idx)
+        
+        if end_idx == -1:
+            logging.error("未找到cookie结束位置！")
+            return False
+        
+        new_content = content[:start_idx] + '\n' + new_cookie_text + '\n' + content[end_idx:]
+        
+        # 写入文件
+        with open('qiangpiao.py', 'w', encoding='utf-8') as f:
+            f.write(new_content)
+        
+        logging.info("Cookie更新成功！")
+        
+        # 重新加载cookies到全局变量
+        global cookies
+        cookies = extract_cookies_from_text(new_cookie_text)
+        
+        return True
+        
+    except Exception as e:
+        logging.error(f"更新失败: {e}")
+        return False

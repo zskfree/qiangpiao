@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <!-- 现有Cookie状态卡片 -->
+    <div class="col-12 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> 当前Cookie状态</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div id="currentCookieStatus">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                <span>正在检查当前Cookie状态...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-outline-primary" onclick="checkCurrentCookie()">
+                            <i class="bi bi-arrow-clockwise"></i> 重新检查
+                        </button>
+                        <button class="btn btn-outline-info ms-2" onclick="showCurrentCookie()">
+                            <i class="bi bi-eye"></i> 查看Cookie
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-key"></i> Cookie管理</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Cookie字符串</label>
+                    <textarea class="form-control" id="cookieText" rows="6"
+                        placeholder="请粘贴从浏览器复制的完整Cookie字符串..."></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-warning" onclick="testCookie()">
+                        <i class="bi bi-check-circle"></i> 测试Cookie
+                    </button>
+                    <button class="btn btn-success" onclick="updateCookie()">
+                        <i class="bi bi-upload"></i> 更新Cookie
+                    </button>
+                </div>
+
+                <div id="cookieResult" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-question-circle"></i> 如何获取Cookie</h5>
+            </div>
+            <div class="card-body">
+                <ol class="small">
+                    <li>打开浏览器（Chrome/Edge推荐）</li>
+                    <li>访问: <code>https://ehall.szu.edu.cn</code></li>
+                    <li>登录你的学号和密码</li>
+                    <li>进入体育场馆预约系统</li>
+                    <li>按<kbd>F12</kbd>打开开发者工具</li>
+                    <li>切换到<strong>Network</strong>标签页</li>
+                    <li>刷新页面(<kbd>F5</kbd>)</li>
+                    <li>点击任意请求</li>
+                    <li>在<strong>Request Headers</strong>中找到<code>Cookie</code></li>
+                    <li>复制完整的Cookie值</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="bi bi-shield-check"></i> Cookie安全</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning small">
+                    <strong>注意:</strong><br>
+                    • Cookie包含登录信息，请勿分享给他人<br>
+                    • Cookie有时效性，需要定期更新<br>
+                    • 建议在系统提示Cookie失效时及时更新
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 显示Cookie详情的模态框 -->
+<div class="modal fade" id="cookieModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-key"></i> 当前Cookie详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Cookie内容</label>
+                    <textarea class="form-control" id="currentCookieContent" rows="8" readonly></textarea>
+                </div>
+                <div id="cookieFields"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="copyCookieToInput()">
+                    <i class="bi bi-clipboard"></i> 复制到输入框
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 页面加载时检查当前Cookie状态
+    document.addEventListener('DOMContentLoaded', function () {
+        checkCurrentCookie();
+    });
+
+    async function checkCurrentCookie() {
+        const statusDiv = document.getElementById('currentCookieStatus');
+        statusDiv.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                <span>正在检查当前Cookie状态...</span>
+            </div>
+        `;
+
+        try {
+            const response = await fetch('/api/cookie/current', {
+                method: 'GET'
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                const statusClass = result.valid ? 'success' : 'danger';
+                const statusIcon = result.valid ? 'check-circle-fill' : 'x-circle-fill';
+                const statusText = result.valid ? '有效' : '无效';
+
+                statusDiv.innerHTML = `
+                    <div class="alert alert-${statusClass} mb-0">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-${statusIcon} me-2"></i>
+                            <div>
+                                <strong>Cookie状态: ${statusText}</strong><br>
+                                <small>${result.message}</small><br>
+                                <small class="text-muted">包含 ${result.cookie_count} 个字段 | 最后更新: ${result.last_update || '未知'}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="alert alert-warning mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>无法获取Cookie信息</strong><br>
+                        <small>${result.message}</small>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            statusDiv.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    <i class="bi bi-x-circle-fill me-2"></i>
+                    <strong>检查失败</strong><br>
+                    <small>${error.message}</small>
+                </div>
+            `;
+        }
+    }
+
+    async function showCurrentCookie() {
+        try {
+            const response = await fetch('/api/cookie/current', {
+                method: 'GET'
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                document.getElementById('currentCookieContent').value = result.cookie_text || '';
+
+                // 显示Cookie字段信息
+                const fieldsDiv = document.getElementById('cookieFields');
+                if (result.cookie_fields && Object.keys(result.cookie_fields).length > 0) {
+                    let fieldsHtml = '<h6>Cookie字段:</h6><div class="table-responsive"><table class="table table-sm">';
+                    fieldsHtml += '<thead><tr><th>字段名</th><th>值</th></tr></thead><tbody>';
+
+                    for (const [key, value] of Object.entries(result.cookie_fields)) {
+                        const truncatedValue = value.length > 50 ? value.substring(0, 50) + '...' : value;
+                        fieldsHtml += `<tr><td><code>${key}</code></td><td><small>${truncatedValue}</small></td></tr>`;
+                    }
+
+                    fieldsHtml += '</tbody></table></div>';
+                    fieldsDiv.innerHTML = fieldsHtml;
+                } else {
+                    fieldsDiv.innerHTML = '<p class="text-muted">无Cookie字段信息</p>';
+                }
+
+                // 显示模态框
+                const modal = new bootstrap.Modal(document.getElementById('cookieModal'));
+                modal.show();
+            } else {
+                showAlert('danger', '无法获取当前Cookie: ' + result.message);
+            }
+        } catch (error) {
+            showAlert('danger', '获取Cookie失败: ' + error.message);
+        }
+    }
+
+    function copyCookieToInput() {
+        const cookieContent = document.getElementById('currentCookieContent').value;
+        document.getElementById('cookieText').value = cookieContent;
+
+        // 关闭模态框
+        const modal = bootstrap.Modal.getInstance(document.getElementById('cookieModal'));
+        modal.hide();
+
+        showAlert('info', 'Cookie已复制到输入框');
+    }
+
+    async function testCookie() {
+        const cookieText = document.getElementById('cookieText').value.trim();
+
+        if (!cookieText) {
+            showAlert('warning', '请先输入Cookie');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/cookie/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ cookie: cookieText })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                document.getElementById('cookieResult').innerHTML = `
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i> ${result.message}
+                    <br><small>包含 ${result.cookie_count} 个Cookie字段</small>
+                </div>
+            `;
+            } else {
+                document.getElementById('cookieResult').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle"></i> ${result.message}
+                </div>
+            `;
+            }
+        } catch (error) {
+            showAlert('danger', '测试失败: ' + error.message);
+        }
+    }
+
+    async function updateCookie() {
+        const cookieText = document.getElementById('cookieText').value.trim();
+
+        if (!cookieText) {
+            showAlert('warning', '请先输入Cookie');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/cookie/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ cookie: cookieText })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showAlert('success', result.message);
+                document.getElementById('cookieText').value = '';
+                document.getElementById('cookieResult').innerHTML = '';
+            } else {
+                showAlert('danger', result.message);
+            }
+        } catch (error) {
+            showAlert('danger', '更新失败: ' + error.message);
+        }
+    }
+</script>
+{% endblock %}

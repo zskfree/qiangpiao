@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> 系统概览</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>当前配置</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>校区:</strong> {{ '丽湖' if config.XQ == '2' else '粤海' }}</li>
+                            <li><strong>目标日期:</strong> {{ config.TARGET_DATE }}</li>
+                            <li><strong>预约人:</strong> {{ config.USER_INFO.YYRXM }} ({{ config.USER_INFO.YYRGH }})</li>
+                            <li><strong>重试间隔:</strong> {{ config.RETRY_INTERVAL }}秒</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>优先时段</h6>
+                        <ul class="list-unstyled">
+                            {% for time in config.PREFERRED_TIMES %}
+                            <li><i class="bi bi-clock"></i> {{ time }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="bi bi-list-check"></i> 使用指南</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-gear text-primary" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">1. 配置设置</h6>
+                            <p class="text-muted">设置校区、日期、个人信息等基本配置</p>
+                            <a href="{{ url_for('config_page') }}" class="btn btn-outline-primary btn-sm">配置设置</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-key text-warning" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">2. Cookie管理</h6>
+                            <p class="text-muted">更新登录Cookie以确保系统正常工作</p>
+                            <a href="{{ url_for('cookie_page') }}" class="btn btn-outline-warning btn-sm">Cookie管理</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-play-circle text-success" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">3. 开始预约</h6>
+                            <p class="text-muted">启动自动预约程序</p>
+                            <a href="{{ url_for('booking_page') }}" class="btn btn-outline-success btn-sm">开始预约</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-exclamation-triangle"></i> 重要提醒</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <small>
+                        <strong>注意事项:</strong><br>
+                        • 请确保个人信息准确<br>
+                        • Cookie需要定期更新<br>
+                        • 建议在预约开放前几分钟启动<br>
+                        • 系统会自动重试直到成功或达到上限
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="bi bi-question-circle"></i> 快速帮助</h5>
+            </div>
+            <div class="card-body">
+                <h6>如何获取Cookie?</h6>
+                <ol class="small">
+                    <li>登录深大门户网站</li>
+                    <li>进入体育场馆预约系统</li>
+                    <li>按F12打开开发者工具</li>
+                    <li>在Network标签中找到Cookie</li>
+                    <li>复制完整Cookie字符串</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

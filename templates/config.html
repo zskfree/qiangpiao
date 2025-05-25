@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-gear"></i> 系统配置</h5>
+            </div>
+            <div class="card-body">
+                <form id="configForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">校区</label>
+                                <select class="form-select" name="XQ" required>
+                                    <option value="1" {{ 'selected' if config.XQ=='1' else '' }}>粤海校区</option>
+                                    <option value="2" {{ 'selected' if config.XQ=='2' else '' }}>丽湖校区</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">预约日期</label>
+                                <input type="date" class="form-control" name="TARGET_DATE"
+                                    value="{{ config.TARGET_DATE }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">学号/工号</label>
+                                <input type="text" class="form-control" name="YYRGH"
+                                    value="{{ config.USER_INFO.YYRGH }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">姓名</label>
+                                <input type="text" class="form-control" name="YYRXM"
+                                    value="{{ config.USER_INFO.YYRXM }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">优先时段 (每行一个)</label>
+                        <textarea class="form-control" name="PREFERRED_TIMES" rows="4"
+                            placeholder="12:00-13:00&#10;13:00-14:00">{{ config.PREFERRED_TIMES | join('\n') }}</textarea>
+                        <div class="form-text">格式: HH:MM-HH:MM，每行一个时段</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">最大重试次数</label>
+                                <input type="number" class="form-control" name="MAX_RETRY_TIMES"
+                                    value="{{ config.MAX_RETRY_TIMES }}" min="1" max="1000">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">重试间隔(秒)</label>
+                                <input type="number" class="form-control" name="RETRY_INTERVAL"
+                                    value="{{ config.RETRY_INTERVAL }}" min="1" max="60">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> 保存配置
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> 配置说明</h5>
+            </div>
+            <div class="card-body">
+                <h6>校区选择</h6>
+                <p class="small">粤海校区：主校区<br>丽湖校区：新校区</p>
+
+                <h6>时段格式</h6>
+                <p class="small">使用24小时制，格式为"开始时间-结束时间"<br>例如：12:00-13:00</p>
+
+                <h6>重试设置</h6>
+                <p class="small">建议重试间隔2-5秒<br>最大重试次数根据需要设置</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('configForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const data = {
+            XQ: formData.get('XQ'),
+            TARGET_DATE: formData.get('TARGET_DATE'),
+            PREFERRED_TIMES: formData.get('PREFERRED_TIMES').split('\n').filter(t => t.trim()),
+            USER_INFO: {
+                YYRGH: formData.get('YYRGH'),
+                YYRXM: formData.get('YYRXM')
+            },
+            MAX_RETRY_TIMES: formData.get('MAX_RETRY_TIMES'),
+            RETRY_INTERVAL: formData.get('RETRY_INTERVAL')
+        };
+
+        try {
+            const response = await fetch('/api/config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showAlert('success', result.message);
+            } else {
+                showAlert('danger', result.message);
+            }
+        } catch (error) {
+            showAlert('danger', '保存失败: ' + error.message);
+        }
+    });
+</script>
+{% endblock %}
