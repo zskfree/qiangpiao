@@ -3,7 +3,7 @@ chcp 65001 >nul
 cls
 
 echo.
-echo   深大体育场馆预约 Web界面
+echo   深大体育场馆预约-zsk Web界面
 echo   ==============================
 echo.
 echo   正在启动Web界面...
@@ -39,7 +39,7 @@ echo   注意：关闭此窗口将停止Web服务
 echo.
 
 REM 直接运行Python脚本，不创建新窗口
-python start_web.py
+python "start_web.py"
 
 echo.
 echo   Web服务已停止，按任意键退出...

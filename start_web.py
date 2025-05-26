@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-深大体育场馆预约 Web版启动脚本
+深大体育场馆预约-zsk Web版启动脚本
 """
 
 import os
