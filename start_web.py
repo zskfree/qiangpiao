@@ -191,11 +191,6 @@ def main():
         input("按回车键退出...")
         sys.exit(1)
     
-    # 创建静态文件目录
-    if not os.path.exists('static'):
-        os.makedirs('static')
-        print("📁 已创建static目录")
-    
     try:
         # 设置日志级别，减少输出
         setup_logging()

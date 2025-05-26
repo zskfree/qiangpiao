@@ -2,7 +2,7 @@
 
 ## 🎯 项目概述
 
-这是一个功能完善的深圳大学体育场馆自动预约系统，提供现代化的Web界面操作，支持多种运动项目的智能预约，具有实时监控、Cookie管理等特性。
+这是一个功能完善的深圳大学体育场馆自动预约系统，提供现代化的Web界面操作，支持多种运动项目的智能预约，具有实时监控、Cookie管理、自动重试等特性。
 
 ## ✨ 主要特性
 
@@ -21,23 +21,25 @@
 - **智能时段选择**: 最多预约2个不同时间段
 - **优先级策略**: 按配置的时段优先级智能选择
 - **SSL连接优化**: 完美解决SSL握手失败问题
+- **自动重试机制**: 可配置重试次数和间隔
 
 ### 🛡️ 稳定性和易用性
 
 - **完善异常处理**: 网络错误、Cookie失效、JSON解析错误全覆盖
-- **智能重试机制**: 可配置重试次数和间隔
+- **智能重试机制**: 网络异常自动重试，可配置参数
 - **Cookie状态检查**: 实时检测和验证Cookie有效性
 - **状态持久化**: 每次启动自动重置，确保干净状态
 - **详细日志系统**: 文件和控制台双重日志记录
+- **线程安全**: 支持安全的启动和停止操作
 
 ## 🚀 快速开始
 
 ### 一键启动Web服务
 
 ```bash
-# 方案一：双击start.bat
+# 方案一：双击start.bat (Windows推荐)
 
-# 方案二：启动Web界面
+# 方案二：Python启动
 python start_web.py
 ```
 
@@ -68,7 +70,7 @@ python start_web.py
 | 参数 | 说明 | 可选值 |
 |------|------|--------|
 | 校区选择 | 目标校区 | 粤海校区、丽湖校区 |
-| 运动项目 | 预约项目 | 羽毛球、乒乓球、网球等7种项目 |
+| 运动项目 | 预约项目 | 羽毛球、乒乓球、网球、篮球、排球、游泳、桌球 |
 | 预约日期 | 目标日期 | 格式：YYYY-MM-DD |
 | 时间段 | 优先时段 | 最多选择5个，按优先级排序 |
 
@@ -121,6 +123,21 @@ Web界面会实时显示Cookie状态：
 - ✅ **有效**: Cookie正常，可以开始预约
 - ❌ **无效**: Cookie已过期，需要重新获取
 - ⚠️ **异常**: 网络或格式问题，请检查后重试
+
+### Cookie管理工具
+
+项目提供独立的Cookie管理工具：
+
+```bash
+# 检查Cookie状态
+python cookie_manager.py check
+
+# 更新Cookie
+python cookie_manager.py update
+
+# 测试当前Cookie
+python cookie_manager.py test
+```
 
 ## 📊 Web界面功能
 
@@ -210,6 +227,13 @@ python start_web.py
 - 验证Cookie是否仍然有效
 - 检查网络连接稳定性
 
+**Q: 抢票中途停止**
+
+- 检查网络连接稳定性
+- 确认Cookie是否过期
+- 查看日志文件获取详细错误信息
+- 重新启动抢票程序
+
 ### 调试技巧
 
 **Web界面调试**:
@@ -227,6 +251,9 @@ python qiangpiao.py --debug
 # 查看运行日志
 type qiangpiao.log  # Windows
 cat qiangpiao.log   # Linux/Mac
+
+# 使用Cookie管理工具
+python cookie_manager.py check
 ```
 
 ## 📁 项目结构
@@ -234,6 +261,7 @@ cat qiangpiao.log   # Linux/Mac
 ```
 深大体育场馆预约系统/
 ├── 🚀 启动文件
+│   ├── start.bat             # Windows批处理启动脚本
 │   └── start_web.py          # Web服务启动脚本
 ├── 🌐 Web应用
 │   ├── web_app.py            # Flask主应用
@@ -241,21 +269,17 @@ cat qiangpiao.log   # Linux/Mac
 │       ├── index.html        # 首页
 │       ├── config.html       # 配置管理页面
 │       ├── cookie.html       # Cookie管理页面
-│       ├── booking.html      # 智能抢票页面
-│       └── base.html         # 基础模板(已弃用)
+│       └── booking.html      # 智能抢票页面
 ├── 🔧 核心模块
 │   ├── qiangpiao.py          # 主抢票逻辑
-│   └── config.py             # 配置文件
-├── 📁 静态资源 (已移除)
-│   ├── static/style.css      # 样式文件(已弃用)
-│   └── static/script.js      # 脚本文件(已弃用)
+│   ├── config.py             # 配置文件
+│   └── cookie_manager.py     # Cookie管理工具
 ├── 📄 文档
 │   └── README.md             # 项目说明文档
 └── 📊 运行时文件
-    └── qiangpiao.log         # 运行日志
+    ├── qiangpiao.log         # 运行日志
+    └── cookie_backup_*.txt   # Cookie备份文件
 ```
-
-**注**: 项目已完全移除Bootstrap依赖，所有页面使用独立的内联样式设计。
 
 ## 📈 运行示例
 
@@ -311,7 +335,7 @@ cat qiangpiao.log   # Linux/Mac
 ### 技术要求
 
 - **Python版本**: 3.6 或更高版本
-- **依赖库**: Flask、requests
+- **依赖库**: Flask、requests、urllib3
 - **浏览器**: 现代浏览器（Chrome推荐）
 - **网络**: 稳定的互联网连接
 
@@ -328,6 +352,9 @@ python qiangpiao.py
 
 # 调试模式
 python qiangpiao.py --debug
+
+# Cookie管理
+python cookie_manager.py check
 ```
 
 ### 自助解决步骤
@@ -336,14 +363,32 @@ python qiangpiao.py --debug
 2. **验证Cookie**: 使用Cookie管理页面检查状态
 3. **查看日志**: 观察Web界面实时日志或文件日志
 4. **网络检查**: 确认网络连接和深大门户可访问性
+5. **重启服务**: 必要时重启Web服务解决状态问题
+
+## 🔄 系统特色
+
+### 自动化特性
+
+- **自动重试**: 网络异常时自动重试，无需人工干预
+- **智能选择**: 按优先级自动选择最优时间段
+- **状态监控**: 实时监控系统运行状态和Cookie有效性
+- **错误恢复**: 自动处理常见错误，提供解决建议
+
+### 安全特性
+
+- **SSL优化**: 自定义SSL适配器，解决证书验证问题
+- **Cookie保护**: 安全的Cookie存储和传输机制
+- **会话管理**: 完善的会话状态管理和恢复
+- **日志记录**: 详细的操作日志，便于问题追踪
 
 ## 🎊 版本信息
 
-- **当前版本**: v3.3 Web版
+- **当前版本**: v3.3 Web增强版
 - **支持项目**: 7种运动项目
 - **支持校区**: 2个校区
 - **界面语言**: 中文
 - **最后更新**: 2024年最新版
+- **新增功能**: Cookie管理工具、线程安全控制、自动状态重置
 
 ## 📄 许可与声明
 
