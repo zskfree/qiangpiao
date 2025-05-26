@@ -55,7 +55,7 @@ for item in raw_cookie.strip().split("; "):
     cookies[key] = value
 
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
     "Referer": "https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do",
     "Origin": "https://ehall.szu.edu.cn",
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
