@@ -1,139 +1,386 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="zh-CN">
 
-{% block content %}
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-gear"></i> 系统配置</h5>
-            </div>
-            <div class="card-body">
-                <form id="configForm">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">校区</label>
-                                <select class="form-select" name="XQ" required>
-                                    <option value="1" {{ 'selected' if config.XQ=='1' else '' }}>粤海校区</option>
-                                    <option value="2" {{ 'selected' if config.XQ=='2' else '' }}>丽湖校区</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">预约日期</label>
-                                <input type="date" class="form-control" name="TARGET_DATE"
-                                    value="{{ config.TARGET_DATE }}" required>
-                            </div>
-                        </div>
-                    </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>深大羽球预约 - 配置管理</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">学号/工号</label>
-                                <input type="text" class="form-control" name="YYRGH"
-                                    value="{{ config.USER_INFO.YYRGH }}" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">姓名</label>
-                                <input type="text" class="form-control" name="YYRXM"
-                                    value="{{ config.USER_INFO.YYRXM }}" required>
-                            </div>
-                        </div>
-                    </div>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
 
-                    <div class="mb-3">
-                        <label class="form-label">优先时段 (每行一个)</label>
-                        <textarea class="form-control" name="PREFERRED_TIMES" rows="4"
-                            placeholder="12:00-13:00&#10;13:00-14:00">{{ config.PREFERRED_TIMES | join('\n') }}</textarea>
-                        <div class="form-text">格式: HH:MM-HH:MM，每行一个时段</div>
-                    </div>
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">最大重试次数</label>
-                                <input type="number" class="form-control" name="MAX_RETRY_TIMES"
-                                    value="{{ config.MAX_RETRY_TIMES }}" min="1" max="1000">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">重试间隔(秒)</label>
-                                <input type="number" class="form-control" name="RETRY_INTERVAL"
-                                    value="{{ config.RETRY_INTERVAL }}" min="1" max="60">
-                            </div>
-                        </div>
-                    </div>
+        .action-bar {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
 
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check"></i> 保存配置
-                    </button>
-                </form>
-            </div>
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .time-slot {
+            display: flex;
+            align-items: center;
+        }
+
+        .time-slot input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #6c757d, #495057);
+        }
+
+        .btn-large {
+            padding: 15px 40px;
+            font-size: 18px;
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        .section h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+
+        .config-hint {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .config-hint h4 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 配置管理</h1>
+            <p>设置抢票参数和用户信息</p>
         </div>
+
+        <div class="nav-links">
+            <a href="/">🏠 首页</a>
+            <a href="/cookie">🍪 Cookie管理</a>
+            <a href="/booking">🎯 抢票</a>
+        </div>
+
+        <form id="configForm">
+            <!-- 操作按钮区域 - 移到顶部 -->
+            <div class="action-bar">
+                <div class="config-hint">
+                    <h4>💡 配置说明</h4>
+                    <p>请根据您的需求配置以下参数，配置完成后点击保存按钮即可生效。</p>
+                </div>
+
+                <button type="submit" class="btn btn-large">💾 保存配置</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='/'">
+                    🔙 返回首页
+                </button>
+            </div>
+
+            <!-- 通知消息区域 -->
+            <div id="alert" style="display: none;"></div>
+
+            <div class="section">
+                <h3>🏫 基础设置</h3>
+
+                <div class="form-group">
+                    <label for="campus">校区选择：</label>
+                    <select id="campus" name="XQ" class="form-control">
+                        {% for name, code in campus_codes.items() %}
+                        <option value="{{ code }}" {% if config.XQ==code %}selected{% endif %}>
+                            {{ name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="sport">运动项目：</label>
+                    <select id="sport" name="XMDM" class="form-control">
+                        {% for name, code in sport_codes.items() %}
+                        <option value="{{ code }}" {% if config.XMDM==code %}selected{% endif %}>
+                            {{ name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="targetDate">预约日期：</label>
+                    <input type="date" id="targetDate" name="TARGET_DATE" class="form-control"
+                        value="{{ config.TARGET_DATE }}">
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>⏰ 时间段选择</h3>
+                <p>请选择您希望预约的时间段（按优先级顺序，最多选择5个）：</p>
+                <div class="time-slots">
+                    {% for slot in time_slots %}
+                    <div class="time-slot">
+                        <input type="checkbox" id="time_{{ loop.index }}" name="preferred_times" value="{{ slot }}" {%
+                            if slot in config.PREFERRED_TIMES %}checked{% endif %}>
+                        <label for="time_{{ loop.index }}">{{ slot }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>👤 用户信息</h3>
+
+                <div class="form-group">
+                    <label for="userCode">学号/工号：</label>
+                    <input type="text" id="userCode" name="YYRGH" class="form-control"
+                        value="{{ config.USER_INFO.YYRGH }}" placeholder="请输入您的学号或工号">
+                </div>
+
+                <div class="form-group">
+                    <label for="userName">姓名：</label>
+                    <input type="text" id="userName" name="YYRXM" class="form-control"
+                        value="{{ config.USER_INFO.YYRXM }}" placeholder="请输入您的真实姓名">
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>⚙️ 高级设置</h3>
+
+                <div class="form-group">
+                    <label for="maxRetry">最大重试次数：</label>
+                    <input type="number" id="maxRetry" name="MAX_RETRY_TIMES" class="form-control"
+                        value="{{ config.MAX_RETRY_TIMES }}" min="1" max="1000">
+                </div>
+
+                <div class="form-group">
+                    <label for="retryInterval">重试间隔（秒）：</label>
+                    <input type="number" id="retryInterval" name="RETRY_INTERVAL" class="form-control"
+                        value="{{ config.RETRY_INTERVAL }}" min="1" max="60">
+                </div>
+            </div>
+        </form>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-info-circle"></i> 配置说明</h5>
-            </div>
-            <div class="card-body">
-                <h6>校区选择</h6>
-                <p class="small">粤海校区：主校区<br>丽湖校区：新校区</p>
+    <script>
+        function showAlert(message, type = 'success') {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
 
-                <h6>时段格式</h6>
-                <p class="small">使用24小时制，格式为"开始时间-结束时间"<br>例如：12:00-13:00</p>
-
-                <h6>重试设置</h6>
-                <p class="small">建议重试间隔2-5秒<br>最大重试次数根据需要设置</p>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    document.getElementById('configForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const formData = new FormData(this);
-        const data = {
-            XQ: formData.get('XQ'),
-            TARGET_DATE: formData.get('TARGET_DATE'),
-            PREFERRED_TIMES: formData.get('PREFERRED_TIMES').split('\n').filter(t => t.trim()),
-            USER_INFO: {
-                YYRGH: formData.get('YYRGH'),
-                YYRXM: formData.get('YYRXM')
-            },
-            MAX_RETRY_TIMES: formData.get('MAX_RETRY_TIMES'),
-            RETRY_INTERVAL: formData.get('RETRY_INTERVAL')
-        };
-
-        try {
-            const response = await fetch('/api/config', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
+            // 滚动到通知区域
+            alert.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
             });
 
-            const result = await response.json();
-
-            if (result.success) {
-                showAlert('success', result.message);
-            } else {
-                showAlert('danger', result.message);
-            }
-        } catch (error) {
-            showAlert('danger', '保存失败: ' + error.message);
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000); // 延长显示时间到5秒
         }
-    });
-</script>
-{% endblock %}
+
+        document.getElementById('configForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // 获取选中的时间段
+            const checkedTimes = Array.from(document.querySelectorAll('input[name="preferred_times"]:checked'))
+                .map(input => input.value);
+
+            if (checkedTimes.length === 0) {
+                showAlert('请至少选择一个时间段！', 'danger');
+                return;
+            }
+
+            if (checkedTimes.length > 5) {
+                showAlert('最多只能选择5个时间段！', 'danger');
+                return;
+            }
+
+            const formData = {
+                XQ: document.getElementById('campus').value,
+                XMDM: document.getElementById('sport').value,
+                TARGET_DATE: document.getElementById('targetDate').value,
+                PREFERRED_TIMES: checkedTimes,
+                USER_INFO: {
+                    YYRGH: document.getElementById('userCode').value.trim(),
+                    YYRXM: document.getElementById('userName').value.trim()
+                },
+                MAX_RETRY_TIMES: parseInt(document.getElementById('maxRetry').value),
+                RETRY_INTERVAL: parseInt(document.getElementById('retryInterval').value)
+            };
+
+            // 验证用户信息
+            if (!formData.USER_INFO.YYRGH || !formData.USER_INFO.YYRXM) {
+                showAlert('请填写完整的用户信息！', 'danger');
+                return;
+            }
+
+            // 禁用提交按钮，防止重复提交
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ 保存中...';
+
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('✅ 配置保存成功！所有设置已生效。', 'success');
+                } else {
+                    showAlert('❌ ' + result.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ 保存失败：' + error.message, 'danger');
+            } finally {
+                // 恢复提交按钮
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+
+        // 限制时间段选择数量
+        document.addEventListener('change', function (e) {
+            if (e.target.name === 'preferred_times') {
+                const checkedBoxes = document.querySelectorAll('input[name="preferred_times"]:checked');
+                if (checkedBoxes.length > 5) {
+                    e.target.checked = false;
+                    showAlert('最多只能选择5个时间段！', 'danger');
+                }
+            }
+        });
+
+        // 页面加载完成后，如果URL中有success参数，显示成功消息
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === '1') {
+                showAlert('✅ 配置已成功保存！', 'success');
+                // 清除URL参数
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+    </script>
+</body>
+
+</html>

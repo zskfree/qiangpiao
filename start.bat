@@ -3,7 +3,7 @@ chcp 65001 >nul
 cls
 
 echo.
-echo   深大羽球预约 Web版
+echo   深大体育场馆预约 Web界面
 echo   ==============================
 echo.
 echo   正在启动Web界面...

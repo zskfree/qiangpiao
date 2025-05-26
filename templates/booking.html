@@ -1,234 +1,469 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="zh-CN">
 
-{% block content %}
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5><i class="bi bi-play-circle"></i> 预约控制</h5>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>深大羽球预约 - 智能抢票</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: transform 0.2s;
+            margin: 5px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #28a745, #1e7e34);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #bd2130);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .badge-secondary {
+            background: #6c757d;
+        }
+
+        .badge-warning {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .badge-success {
+            background: #28a745;
+        }
+
+        .badge-danger {
+            background: #dc3545;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status-panel {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4169e1;
+            margin: 20px 0;
+        }
+
+        .status-panel h4 {
+            color: #4169e1;
+            margin: 0 0 10px 0;
+        }
+
+        .log-container {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-time {
+            color: #666;
+            font-size: 11px;
+        }
+
+        .results-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            margin: 20px 0;
+        }
+
+        .results-section h4 {
+            color: #667eea;
+            margin: 0 0 15px 0;
+        }
+
+        .result-card {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .result-card h6 {
+            color: #155724;
+            margin: 0 0 10px 0;
+        }
+
+        .result-detail {
+            color: #155724;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .tips-section {
+            background: #fff9c4;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #ffd700;
+            margin: 20px 0;
+        }
+
+        .tips-section h4 {
+            color: #b8860b;
+            margin: 0 0 10px 0;
+        }
+
+        .tips-section ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .tips-section li {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 深大体育场馆预约</h1>
+            <p>自动监控并预约体育场馆时段</p>
+        </div>
+
+        <div class="nav-links">
+            <a href="/">🏠 首页</a>
+            <a href="/config">🔧 配置管理</a>
+            <a href="/cookie">🍪 Cookie管理</a>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                 <div>
-                    <span id="statusBadge" class="badge bg-secondary">未开始</span>
+                    <h3 style="margin: 0; color: #667eea;">🎮 预约控制台</h3>
+                    <p style="margin: 5px 0 0 0; color: #666;">一键启动智能预约</p>
+                </div>
+                <div>
+                    <span id="statusBadge" class="status-badge badge-secondary">未开始</span>
                 </div>
             </div>
-            <div class="card-body">
-                <div class="d-flex gap-2 mb-3">
-                    <button id="startBtn" class="btn btn-success" onclick="startBooking()">
-                        <i class="bi bi-play"></i> 开始预约
-                    </button>
-                    <button id="stopBtn" class="btn btn-danger" onclick="stopBooking()" disabled>
-                        <i class="bi bi-stop"></i> 停止预约
-                    </button>
-                </div>
 
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <h6>运行时间</h6>
-                                <h4 id="elapsedTime">00:00:00</h4>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <h6>查询次数</h6>
-                                <h4 id="retryCount">0</h4>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <h6>成功预约</h6>
-                                <h4 id="successCount">0</h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-3">
-                    <h6>当前状态</h6>
-                    <div id="currentStatus" class="alert alert-info">
-                        准备就绪，点击开始预约按钮启动
-                    </div>
-                </div>
+            <div style="margin-top: 20px;">
+                <button id="startBtn" class="btn btn-success" onclick="startBooking()">
+                    ▶️ 开始预约
+                </button>
+                <button id="stopBtn" class="btn btn-danger" onclick="stopBooking()" disabled>
+                    ⏹️ 停止预约
+                </button>
             </div>
         </div>
 
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5><i class="bi bi-list-check"></i> 预约结果</h5>
+        <!-- 统计面板 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="elapsedTime">00:00:00</div>
+                <div class="stat-label">⏱️ 运行时间</div>
             </div>
-            <div class="card-body">
-                <div id="bookingResults">
-                    <p class="text-muted">暂无预约记录</p>
+            <div class="stat-card">
+                <div class="stat-value" id="retryCount">0</div>
+                <div class="stat-label">🔄 查询次数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="successCount">0</div>
+                <div class="stat-label">✅ 成功预约</div>
+            </div>
+        </div>
+
+        <!-- 状态和日志 -->
+        <div class="grid-2">
+            <div>
+                <!-- 当前状态 -->
+                <div class="status-panel">
+                    <h4>📊 当前状态</h4>
+                    <div id="currentStatus" style="font-size: 16px; color: #333;">
+                        准备就绪，点击开始预约按钮启动系统
+                    </div>
+                </div>
+
+                <!-- 预约结果 -->
+                <div class="results-section">
+                    <h4>🏆 预约结果</h4>
+                    <div id="bookingResults">
+                        <p style="text-align: center; color: #999; margin: 30px 0;">暂无预约记录</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <!-- 实时日志 -->
+                <div class="results-section">
+                    <h4>📋 实时日志</h4>
+                    <div id="logContainer" class="log-container">
+                        <div class="log-entry" style="color: #999;">
+                            <span class="log-time">[系统]</span> 等待开始...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 注意事项 -->
+                <div class="tips-section">
+                    <h4>⚠️ 注意事项</h4>
+                    <ul>
+                        <li>确保已正确配置个人信息</li>
+                        <li>确保Cookie有效且未过期</li>
+                        <li>建议在预约开放前启动</li>
+                        <li>系统会自动重试直到成功</li>
+                        <li>最多预约2个不同时间段</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-info-circle"></i> 实时日志</h5>
-            </div>
-            <div class="card-body">
-                <div id="logContainer"
-                    style="height: 300px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 5px;">
-                    <div class="text-muted">等待开始...</div>
+    <script>
+        let statusInterval;
+
+        async function startBooking() {
+            try {
+                const response = await fetch('/api/booking/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = false;
+                    document.getElementById('statusBadge').className = 'status-badge badge-warning';
+                    document.getElementById('statusBadge').textContent = '运行中';
+
+                    addLog('✅ 预约系统已启动');
+                    startStatusPolling();
+                } else {
+                    addLog('❌ 启动失败: ' + result.message);
+                }
+            } catch (error) {
+                addLog('❌ 启动失败: ' + error.message);
+            }
+        }
+
+        async function stopBooking() {
+            try {
+                const response = await fetch('/api/booking/stop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    addLog('⛔ 正在停止预约系统...');
+                } else {
+                    addLog('❌ 停止失败: ' + result.message);
+                }
+            } catch (error) {
+                addLog('❌ 停止失败: ' + error.message);
+            }
+        }
+
+        function startStatusPolling() {
+            statusInterval = setInterval(updateStatus, 1000);
+        }
+
+        function stopStatusPolling() {
+            if (statusInterval) {
+                clearInterval(statusInterval);
+            }
+        }
+
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/booking/status');
+                const status = await response.json();
+
+                // 更新统计数据
+                document.getElementById('elapsedTime').textContent = status.elapsed_time || '00:00:00';
+                document.getElementById('retryCount').textContent = status.retry_count || 0;
+                document.getElementById('successCount').textContent = status.results ? status.results.length : 0;
+
+                // 更新状态信息
+                document.getElementById('currentStatus').textContent = status.current_status || '等待中...';
+
+                // 更新预约结果
+                if (status.results && status.results.length > 0) {
+                    updateBookingResults(status.results);
+                }
+
+                // 检查是否停止运行
+                if (!status.running) {
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('stopBtn').disabled = true;
+                    document.getElementById('statusBadge').className = 'status-badge badge-secondary';
+                    document.getElementById('statusBadge').textContent = '已停止';
+
+                    addLog('🏁 预约系统已停止');
+                    stopStatusPolling();
+                }
+
+            } catch (error) {
+                console.error('状态更新失败:', error);
+            }
+        }
+
+        function updateBookingResults(results) {
+            const container = document.getElementById('bookingResults');
+            if (results.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; margin: 30px 0;">暂无预约记录</p>';
+                return;
+            }
+
+            const html = results.map((result, index) => `
+                <div class="result-card">
+                    <h6>🎉 预约成功 #${index + 1}</h6>
+                    <div class="result-detail"><strong>时间段:</strong> ${result.time_slot}</div>
+                    <div class="result-detail"><strong>场地:</strong> ${result.venue_name}</div>
+                    <div class="result-detail"><strong>完成时间:</strong> ${result.timestamp}</div>
                 </div>
-            </div>
-        </div>
+            `).join('');
 
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5><i class="bi bi-exclamation-triangle"></i> 注意事项</h5>
-            </div>
-            <div class="card-body">
-                <ul class="small">
-                    <li>确保已正确配置个人信息</li>
-                    <li>确保Cookie有效且未过期</li>
-                    <li>建议在预约开放前启动系统</li>
-                    <li>系统会自动重试直到成功或达到上限</li>
-                    <li>最多预约2个不同时间段</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+            container.innerHTML = html;
+        }
 
-{% block scripts %}
-<script>
-    let statusInterval;
+        function addLog(message) {
+            const container = document.getElementById('logContainer');
+            const time = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `<span class="log-time">[${time}]</span> ${message}`;
 
-    async function startBooking() {
-        try {
-            const response = await fetch('/api/booking/start', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            container.appendChild(logEntry);
+            container.scrollTop = container.scrollHeight;
 
-            const result = await response.json();
-
-            if (result.success) {
-                document.getElementById('startBtn').disabled = true;
-                document.getElementById('stopBtn').disabled = false;
-                document.getElementById('statusBadge').className = 'badge bg-warning';
-                document.getElementById('statusBadge').textContent = '运行中';
-
-                addLog('✅ 预约已启动');
-                startStatusPolling();
-            } else {
-                showAlert('danger', result.message);
+            // 限制日志条数，避免占用太多内存
+            const entries = container.getElementsByClassName('log-entry');
+            if (entries.length > 100) {
+                container.removeChild(entries[0]);
             }
-        } catch (error) {
-            showAlert('danger', '启动失败: ' + error.message);
-        }
-    }
-
-    async function stopBooking() {
-        try {
-            const response = await fetch('/api/booking/stop', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                addLog('⛔ 正在停止预约...');
-            } else {
-                showAlert('danger', result.message);
-            }
-        } catch (error) {
-            showAlert('danger', '停止失败: ' + error.message);
-        }
-    }
-
-    function startStatusPolling() {
-        statusInterval = setInterval(updateStatus, 1000);
-    }
-
-    function stopStatusPolling() {
-        if (statusInterval) {
-            clearInterval(statusInterval);
-        }
-    }
-
-    async function updateStatus() {
-        try {
-            const response = await fetch('/api/booking/status');
-            const status = await response.json();
-
-            // 更新状态显示
-            document.getElementById('elapsedTime').textContent = status.elapsed_time || '00:00:00';
-            document.getElementById('retryCount').textContent = status.retry_count || 0;
-            document.getElementById('successCount').textContent = status.results ? status.results.length : 0;
-
-            // 更新状态信息
-            const statusDiv = document.getElementById('currentStatus');
-            statusDiv.textContent = status.current_status || '等待中...';
-
-            // 更新预约结果
-            if (status.results && status.results.length > 0) {
-                updateBookingResults(status.results);
-            }
-
-            // 检查是否停止运行
-            if (!status.running) {
-                document.getElementById('startBtn').disabled = false;
-                document.getElementById('stopBtn').disabled = true;
-                document.getElementById('statusBadge').className = 'badge bg-secondary';
-                document.getElementById('statusBadge').textContent = '已停止';
-
-                addLog('🏁 预约已停止');
-                stopStatusPolling();
-            }
-
-        } catch (error) {
-            console.error('状态更新失败:', error);
-        }
-    }
-
-    function updateBookingResults(results) {
-        const container = document.getElementById('bookingResults');
-        if (results.length === 0) {
-            container.innerHTML = '<p class="text-muted">暂无预约记录</p>';
-            return;
         }
 
-        const html = results.map((result, index) => `
-        <div class="alert alert-success">
-            <h6><i class="bi bi-check-circle"></i> 预约成功 #${index + 1}</h6>
-            <p class="mb-1"><strong>时间:</strong> ${result.time_slot}</p>
-            <p class="mb-1"><strong>场地:</strong> ${result.venue_name}</p>
-            <p class="mb-0"><small><strong>完成时间:</strong> ${result.timestamp}</small></p>
-        </div>
-    `).join('');
+        // 页面加载时检查状态
+        document.addEventListener('DOMContentLoaded', function () {
+            updateStatus();
+        });
+    </script>
+</body>
 
-        container.innerHTML = html;
-    }
-
-    function addLog(message) {
-        const container = document.getElementById('logContainer');
-        const time = new Date().toLocaleTimeString();
-        const logEntry = document.createElement('div');
-        logEntry.className = 'mb-1';
-        logEntry.innerHTML = `<small class="text-muted">[${time}]</small> ${message}`;
-
-        container.appendChild(logEntry);
-        container.scrollTop = container.scrollHeight;
-    }
-
-    // 页面加载时检查状态
-    document.addEventListener('DOMContentLoaded', function () {
-        updateStatus();
-    });
-</script>
-{% endblock %}
+</html>

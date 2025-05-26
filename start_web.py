@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-深大羽球预约 Web版启动脚本
+深大体育场馆预约 Web版启动脚本
 """
 
 import os
@@ -158,7 +158,7 @@ def force_reset_booking_status():
 def main():
     global app_instance
     
-    print("🚀 正在启动深大羽球预约...")
+    print("🚀 正在启动...")
     
     # 注册信号处理器
     signal.signal(signal.SIGINT, signal_handler)  # Ctrl+C

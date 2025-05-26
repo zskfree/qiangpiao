@@ -45,7 +45,7 @@ session.mount('https://', SSLAdapter())
 
 
 raw_cookie = """
-EMAP_LANG=zh; 
+EMAP_LANG=zh;
 """
 
 # 解析Cookie字符串
@@ -513,7 +513,7 @@ def debug_request_info():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("🎾 深圳大学体育场馆抢票脚本 v3.3")
+    print("🎾 深圳大学体育场馆预约脚本 v1.0")
     print("=" * 60)
     print(f"📅 目标日期: {CONFIG['TARGET_DATE']}")
     print(f"🏫 校区: {'丽湖' if CONFIG['XQ'] == '2' else '粤海'}")

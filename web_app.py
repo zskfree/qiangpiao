@@ -6,7 +6,7 @@ import time
 from datetime import datetime, timedelta
 import logging
 from qiangpiao import get_available_slots, book_slot, check_login_status, extract_cookies_from_text, test_cookie_validity, update_cookie_in_file
-from config import CONFIG, SPORT_CODES, CAMPUS_CODES
+from config import CONFIG, SPORT_CODES, CAMPUS_CODES, TIME_SLOTS
 
 app = Flask(__name__)
 app.secret_key = 'qiangpiao_secret_key_2024'
@@ -31,12 +31,20 @@ reset_booking_status()
 @app.route('/')
 def index():
     """主页"""
-    return render_template('index.html', config=CONFIG, sport_codes=SPORT_CODES, campus_codes=CAMPUS_CODES)
+    return render_template('index.html', 
+                         config=CONFIG, 
+                         sport_codes=SPORT_CODES, 
+                         campus_codes=CAMPUS_CODES,
+                         time_slots=TIME_SLOTS)
 
 @app.route('/config')
 def config_page():
     """配置页面"""
-    return render_template('config.html', config=CONFIG, sport_codes=SPORT_CODES, campus_codes=CAMPUS_CODES)
+    return render_template('config.html', 
+                         config=CONFIG, 
+                         sport_codes=SPORT_CODES, 
+                         campus_codes=CAMPUS_CODES,
+                         time_slots=TIME_SLOTS)
 
 @app.route('/cookie')
 def cookie_page():
@@ -57,6 +65,8 @@ def update_config():
         # 更新CONFIG
         if 'XQ' in data:
             CONFIG['XQ'] = data['XQ']
+        if 'XMDM' in data:
+            CONFIG['XMDM'] = data['XMDM']
         if 'TARGET_DATE' in data:
             CONFIG['TARGET_DATE'] = data['TARGET_DATE']
         if 'PREFERRED_TIMES' in data:
@@ -371,15 +381,28 @@ def booking_worker(stop_event):
 def save_config_to_file():
     """保存配置到文件"""
     try:
+        # 获取项目名称（通过代码查找）
+        sport_name = "未知项目"
+        for name, code in SPORT_CODES.items():
+            if code == CONFIG['XMDM']:
+                sport_name = name
+                break
+        
         config_content = f'''# 配置文件
 from datetime import datetime, timedelta
+
+current_date = datetime.now()
+# 计算目标日期（当前日期 + 1 天）
+target_date = current_date + timedelta(days=1)
+# 格式化目标日期为字符串
+target_date = target_date.strftime('%Y-%m-%d')
 
 # 基础配置
 CONFIG = {{
     # 查询参数
     "XQ": "{CONFIG['XQ']}",        # 校区：1=粤海, 2=丽湖
     "YYLX": "1.0",    # 预约类型
-    "XMDM": "001",    # 项目代码：001=羽毛球
+    "XMDM": "{CONFIG['XMDM']}",    # 项目代码：001=羽毛球  003=排球 004=网球 005=篮球 009=游泳 013=乒乓球 016=桌球
     
     # 运行参数
     "MAX_RETRY_TIMES": {CONFIG['MAX_RETRY_TIMES']},    # 最大重试次数
@@ -387,7 +410,7 @@ CONFIG = {{
     "REQUEST_TIMEOUT": 10,     # 请求超时时间（秒）
     # 预约日期
     "TARGET_DATE": "{CONFIG['TARGET_DATE']}",
-    
+
     # 优先预约的时段关键词（按优先级排序）
     "PREFERRED_TIMES": {CONFIG['PREFERRED_TIMES']},
     
@@ -401,6 +424,12 @@ CONFIG = {{
 # 项目代码映射
 SPORT_CODES = {{
     "羽毛球": "001",
+    "排球": "003",
+    "网球": "004",
+    "篮球": "005",
+    "游泳": "009",
+    "乒乓球": "013",
+    "桌球": "016"
 }}
 
 # 校区代码映射
@@ -408,6 +437,14 @@ CAMPUS_CODES = {{
     "粤海": "1",
     "丽湖": "2"
 }}
+
+# 可选时间段（每小时一个时段）
+TIME_SLOTS = [
+    "08:00-09:00", "09:00-10:00", "10:00-11:00", "11:00-12:00",
+    "12:00-13:00", "13:00-14:00", "14:00-15:00", "15:00-16:00",
+    "16:00-17:00", "17:00-18:00", "18:00-19:00", "19:00-20:00",
+    "20:00-21:00", "21:00-22:00"
+]
 
 # Cookie配置 (占位符，实际Cookie在qiangpiao.py中定义)
 COOKIE = ""
