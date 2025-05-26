@@ -73,7 +73,7 @@ python start_web.py
 
 ## 📋 系统要求
 
-- **Python 3.7+**
+- **Python 3.12+**（推荐）
 - **Chrome浏览器** (用于Cookie获取)
 - **Windows/Linux/macOS**
 
