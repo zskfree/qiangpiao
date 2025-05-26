@@ -45,7 +45,7 @@ session.mount('https://', SSLAdapter())
 
 
 raw_cookie = """
-EMAP_LANG=zh;
+JSESSIONID=t58LkLP3i5VNk4XDZZ0nqeqtFY2ML_KOBWi9iAgOlDMRWaBLkTRl!-1876930309; 
 """
 
 # 解析Cookie字符串
@@ -139,27 +139,37 @@ def get_available_slots():
                 for room in rooms:
                     # 只选择可预约的场地
                     if not room.get("disabled", True) and room.get("text") == "可预约":
+                        venue_name = room.get('CDMC', '')
+                        
+                        # 设置场馆优先级：至快 > 至畅 > 其他
+                        venue_priority = 2  # 默认优先级
+                        if "至快" in venue_name:
+                            venue_priority = 0  # 最高优先级
+                        elif "至畅" in venue_name:
+                            venue_priority = 1  # 中等优先级
+                        
                         slot_info = {
-                            'name': f"{time_slot} - {room.get('CDMC', '未知场地')}",
+                            'name': f"{time_slot} - {venue_name}",
                             'wid': room['WID'],
                             'time_slot': time_slot,
                             'start_time': start_time,
                             'end_time': end_time,
-                            'venue_name': room.get('CDMC', ''),
+                            'venue_name': venue_name,
                             'venue_code': room.get('CGBM', ''),
-                            'priority': CONFIG["PREFERRED_TIMES"].index(time_slot)
+                            'priority': CONFIG["PREFERRED_TIMES"].index(time_slot),
+                            'venue_priority': venue_priority  # 添加场馆优先级
                         }
                         all_available.append(slot_info)
                         available_count += 1
-                        logging.info(f"可预约场地：{slot_info['name']}，WID：{slot_info['wid']}")
+                        logging.info(f"可预约场地：{slot_info['name']}，WID：{slot_info['wid']}，场馆优先级：{venue_priority}")
                 
                 if available_count == 0:
                     logging.info(f"时段 {time_slot} 暂无可预约场地")
             else:
                 logging.warning(f"查询时段 {time_slot} 失败: {data}")
         
-        # 按优先级排序
-        all_available.sort(key=lambda x: x['priority'])
+        # 先按场馆优先级排序（至快优先），再按时间优先级排序
+        all_available.sort(key=lambda x: (x['venue_priority'], x['priority']))
         return all_available
         
     except requests.exceptions.SSLError as e:
@@ -613,14 +623,18 @@ if __name__ == "__main__":
                     else:
                         print(f"🔍 过滤后剩余 {len(remaining_slots)} 个新时段可预约:")
                         
-                        # 按时间段分组，每个时间段只显示第一个场地
+                        # 按时间段分组，每个时间段优先显示至快体育馆
                         time_slot_groups = {}
                         for slot in remaining_slots:
                             if slot['time_slot'] not in time_slot_groups:
                                 time_slot_groups[slot['time_slot']] = []
                             time_slot_groups[slot['time_slot']].append(slot)
                         
-                        # 显示每个时间段的第一个场地
+                        # 对每个时间段的场地按场馆优先级排序
+                        for time_slot in time_slot_groups:
+                            time_slot_groups[time_slot].sort(key=lambda x: x['venue_priority'])
+                        
+                        # 显示每个时间段的第一个场地（优先至快）
                         display_slots = []
                         for time_slot in CONFIG["PREFERRED_TIMES"]:
                             if time_slot in time_slot_groups:
@@ -628,7 +642,8 @@ if __name__ == "__main__":
                         
                         for i, slot in enumerate(display_slots, 1):
                             venue_count = len(time_slot_groups[slot['time_slot']])
-                            print(f"   {i}. {slot['time_slot']} ({venue_count}个场地可选) - 优先级: {slot['priority']}")
+                            venue_type = "🏟️至快" if "至快" in slot['venue_name'] else "🏛️至畅" if "至畅" in slot['venue_name'] else "🏢其他"
+                            print(f"   {i}. {slot['time_slot']} ({venue_count}个场地可选) - {venue_type} - 优先级: {slot['priority']}")
                         
                         # 按时间段优先级尝试预约
                         for time_slot in CONFIG["PREFERRED_TIMES"]:

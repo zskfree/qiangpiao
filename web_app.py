@@ -6,7 +6,7 @@ import time
 from datetime import datetime, timedelta
 import logging
 from qiangpiao import get_available_slots, book_slot, check_login_status, extract_cookies_from_text, test_cookie_validity, update_cookie_in_file
-from config import CONFIG, SPORT_CODES, CAMPUS_CODES, TIME_SLOTS
+from config import CONFIG, SPORT_CODES, CAMPUS_CODES, TIME_SLOTS, get_campus_account, update_campus_account
 
 app = Flask(__name__)
 app.secret_key = 'qiangpiao_secret_key_2024'
@@ -253,6 +253,174 @@ def get_current_cookie():
             'message': f'获取Cookie失败: {str(e)}'
         })
 
+@app.route('/api/cookie/auto_get', methods=['POST'])
+def auto_get_cookie():
+    """自动获取Cookie - 使用有界面浏览器"""
+    try:
+        data = request.json
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        
+        if not username:
+            return jsonify({'success': False, 'message': '用户名不能为空'})
+        
+        # 如果密码是***，表示使用已保存的密码
+        if password == '***':
+            current_account = get_campus_account()
+            saved_password = current_account.get('password', '')
+            if not saved_password:
+                return jsonify({'success': False, 'message': '未找到已保存的密码，请重新输入'})
+            password = saved_password
+            print(f"使用已保存的密码进行Cookie获取，用户: {username}")
+        elif not password:
+            return jsonify({'success': False, 'message': '密码不能为空'})
+        else:
+            # 如果提供了新密码，更新保存的账户信息
+            update_campus_account(username, password)
+            print(f"使用新密码并保存，用户: {username}")
+        
+        # 导入并调用获取cookie的函数
+        try:
+            from get_cookie import auto_login_and_get_cookies
+            
+            print(f"启动浏览器获取Cookie... 用户: {username}")
+            
+            # 创建一个回调函数来更新状态
+            status_messages = []
+            def status_callback(message):
+                status_messages.append(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
+                print(f"Cookie获取状态: {message}")
+            
+            # 使用线程来避免阻塞web请求
+            import threading
+            result = {'success': False, 'message': '', 'cookie': '', 'status_log': []}
+            
+            def get_cookie_worker():
+                try:
+                    print("开始Cookie获取工作线程...")
+                    cookie_str = auto_login_and_get_cookies(username, password, status_callback)
+                    print(f"Cookie获取结果: {'成功' if cookie_str else '失败'}")
+                    
+                    if cookie_str:
+                        # 尝试更新到文件
+                        print("尝试更新Cookie到文件...")
+                        success = update_cookie_in_file(cookie_str)
+                        if success:
+                            result.update({
+                                'success': True, 
+                                'cookie': cookie_str,
+                                'message': 'Cookie获取并更新成功！',
+                                'status_log': status_messages
+                            })
+                            print("✅ Cookie获取和更新都成功")
+                        else:
+                            result.update({
+                                'success': False, 
+                                'message': 'Cookie获取成功但更新到文件失败',
+                                'cookie': cookie_str,
+                                'status_log': status_messages
+                            })
+                            print("⚠️ Cookie获取成功但文件更新失败")
+                    else:
+                        result.update({
+                            'success': False, 
+                            'message': 'Cookie获取失败，请检查账号密码或网络连接',
+                            'status_log': status_messages
+                        })
+                        print("❌ Cookie获取失败")
+                except Exception as e:
+                    error_msg = f'获取过程出错: {str(e)}'
+                    result.update({
+                        'success': False,
+                        'message': error_msg,
+                        'status_log': status_messages
+                    })
+                    print(f"❌ Cookie获取线程异常: {e}")
+                    import traceback
+                    traceback.print_exc()
+            
+            # 启动获取线程并等待完成
+            thread = threading.Thread(target=get_cookie_worker)
+            thread.daemon = True
+            thread.start()
+            
+            print("等待Cookie获取线程完成...")
+            thread.join(timeout=180)  # 减少到3分钟
+            
+            if thread.is_alive():
+                result.update({
+                    'success': False,
+                    'message': '获取超时，请检查是否在浏览器中完成了登录。如遇验证码请及时输入。',
+                    'status_log': status_messages
+                })
+                print("⚠️ Cookie获取超时")
+            
+            print(f"返回结果: success={result['success']}, message_length={len(result.get('message', ''))}")
+            return jsonify(result)
+            
+        except ImportError as e:
+            error_msg = f'获取Cookie模块导入失败: {str(e)}'
+            print(f"❌ 导入错误: {error_msg}")
+            return jsonify({'success': False, 'message': error_msg})
+        except Exception as e:
+            error_msg = f'模块加载出错: {str(e)}'
+            print(f"❌ 模块错误: {error_msg}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'success': False, 'message': error_msg})
+            
+    except Exception as e:
+        error_msg = f'操作失败: {str(e)}'
+        print(f"❌ API错误: {error_msg}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': error_msg})
+
+@app.route('/api/config/campus_account', methods=['GET'])
+def get_campus_account_api():
+    """获取校园网账户配置"""
+    try:
+        account = get_campus_account()
+        # 返回用户名和密码状态（不返回实际密码）
+        return jsonify({
+            'success': True, 
+            'account': {
+                'username': account.get('username', ''),
+                'password': '***' if account.get('password', '') else ''
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'获取失败: {str(e)}'})
+
+@app.route('/api/config/campus_account', methods=['POST'])
+def update_campus_account_api():
+    """更新校园网账户配置"""
+    try:
+        data = request.json
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        
+        if not username:
+            return jsonify({'success': False, 'message': '用户名不能为空'})
+        
+        # 如果密码是***，保持原密码不变
+        if password == '***':
+            current_account = get_campus_account()
+            password = current_account.get('password', '')
+        
+        # 更新内存中的账户信息
+        update_campus_account(username, password)
+        
+        # 保存到配置文件
+        save_success = save_config_to_file()
+        
+        if save_success:
+            return jsonify({'success': True, 'message': '账户信息更新成功'})
+        else:
+            return jsonify({'success': False, 'message': '账户信息更新失败，无法保存到文件'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})
+
 def booking_worker(stop_event):
     """抢票工作线程"""
     try:
@@ -388,6 +556,9 @@ def save_config_to_file():
                 sport_name = name
                 break
         
+        # 获取校园网账户信息
+        campus_account = get_campus_account()
+        
         config_content = f'''# 配置文件
 from datetime import datetime, timedelta
 
@@ -446,8 +617,23 @@ TIME_SLOTS = [
     "20:00-21:00", "21:00-22:00"
 ]
 
-# Cookie配置 (占位符，实际Cookie在qiangpiao.py中定义)
-COOKIE = ""
+# 校园网账户
+CAMPUS_ACCOUNT = {{
+    "username": "{campus_account['username']}",  # 学号或工号
+    "password": "{campus_account['password']}"
+}}
+
+# 导出配置供其他模块使用
+def get_campus_account():
+    """获取校园网账户信息"""
+    return CAMPUS_ACCOUNT.copy()
+
+def update_campus_account(username, password):
+    """更新校园网账户信息"""
+    global CAMPUS_ACCOUNT
+    CAMPUS_ACCOUNT["username"] = username
+    CAMPUS_ACCOUNT["password"] = password
+    return True
 '''
         
         with open('config.py', 'w', encoding='utf-8') as f:

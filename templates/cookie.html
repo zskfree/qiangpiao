@@ -41,16 +41,103 @@
             font-weight: bold;
         }
 
-        .section {
-            margin: 20px 0;
-            padding: 20px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            background: #f9f9f9;
+        .nav-links a:hover {
+            color: #764ba2;
         }
 
-        .section h3 {
-            margin-top: 0;
+        .status-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .status-valid {
+            background-color: #28a745;
+        }
+
+        .status-invalid {
+            background-color: #dc3545;
+        }
+
+        .status-unknown {
+            background-color: #6c757d;
+        }
+
+        .tabs-container {
+            margin-bottom: 20px;
+        }
+
+        .tabs-nav {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            border: 1px solid #e9ecef;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: #666;
+            transition: all 0.3s;
+            border-right: 1px solid #e9ecef;
+        }
+
+        .tab-button:last-child {
+            border-right: none;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-button:hover:not(.active) {
+            background: #e9ecef;
+        }
+
+        .tab-content {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            padding: 20px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .method-card {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .method-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
             color: #667eea;
         }
 
@@ -80,6 +167,52 @@
             border-color: #667eea;
         }
 
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            width: 100%;
+            align-items: center; /* 保持：用于垂直对齐 */
+        }
+
+        .input-group .form-control {
+            border-radius: 8px 0 0 8px;
+            flex: 1;
+            /* 继承 .form-control 的 padding, font-size, border 等样式 */
+            /* 设置显式高度以确保对齐 */
+            height: 40px; /* 您可以根据需要调整此值 */
+            /* .form-control 已有 box-sizing: border-box; */
+            margin: 0; /* 确保输入框也没有意外的边距 */
+            /* 新增：设置行高以改善文本垂直居中感 */
+            line-height: 16px; /* 计算值: 40px - (2*10px padding) - (2*2px border) */
+        }
+
+        .input-group .btn {
+            border-radius: 0 8px 8px 0;
+            flex-shrink: 0;
+            padding: 10px 15px; 
+            font-size: 12px; 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            /* 设置显式高度并确保 box-sizing */
+            height: 40px; /* 与输入框高度一致 */
+            box-sizing: border-box; /* 确保 height 包含 padding 和 border */
+            margin: 0; /* 新增：移除或重置按钮的外边距 */
+            /* 新增：设置行高以改善文本垂直居中感 */
+            line-height: 16px; /* 计算值: 40px - (2*10px padding) - (2*2px border) */
+        }
+
+        .cookie-textarea {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+
         .btn {
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
@@ -91,26 +224,42 @@
             font-weight: bold;
             transition: transform 0.2s;
             margin: 5px;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .btn:hover {
+        .btn:hover:not(:disabled) {
             transform: translateY(-2px);
         }
 
-        .btn-warning {
-            background: linear-gradient(45deg, #ffc107, #e0a800);
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .btn-success {
             background: linear-gradient(45deg, #28a745, #1e7e34);
         }
 
-        .btn-info {
-            background: linear-gradient(45deg, #17a2b8, #138496);
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #bd2130);
         }
 
-        .btn-secondary {
-            background: linear-gradient(45deg, #6c757d, #495057);
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .alert {
@@ -132,262 +281,61 @@
             border: 1px solid #f5c6cb;
         }
 
-        .alert-warning {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-
         .alert-info {
             background-color: #d1ecf1;
             color: #0c5460;
             border: 1px solid #bee5eb;
         }
 
-        .status-card {
-            background: #e7f3ff;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-            margin-bottom: 20px;
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
         }
 
-        .help-section {
-            background: #f0f8ff;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #4169e1;
-        }
-
-        .help-section h4 {
-            color: #4169e1;
-            margin: 0 0 10px 0;
-        }
-
-        .help-section ol {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-
-        .help-section li {
-            margin: 5px 0;
-            line-height: 1.5;
-        }
-
-        .security-notice {
-            background: #fff9c4;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #ffd700;
-            margin-top: 20px;
-        }
-
-        .security-notice h4 {
-            color: #b8860b;
-            margin: 0 0 10px 0;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-        }
-
-        .modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            z-index: 1001;
-        }
-
-        .modal h3 {
-            color: #667eea;
-            margin-top: 0;
-        }
-
-        .close-btn {
-            float: right;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #999;
-        }
-
-        .close-btn:hover {
-            color: #333;
-        }
-
-        .cookie-fields {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-            background: #f8f9fa;
-        }
-
-        .cookie-field {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .cookie-field:last-child {
-            border-bottom: none;
-        }
-
-        .cookie-key {
-            font-weight: bold;
-            color: #667eea;
-            word-break: break-word;
-        }
-
-        .cookie-value {
-            color: #666;
+        .step-number {
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             font-size: 12px;
-            word-break: break-all;
-            max-width: 300px;
+            margin-right: 8px;
+            font-weight: bold;
         }
-    </style>
-</head>
 
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🍪 Cookie管理</h1>
-            <p>管理登录凭证，确保系统正常运行</p>
-        </div>
+        .browser-warning {
+            animation: pulse 2s infinite;
+        }
 
-        <div class="nav-links">
-            <a href="/">🏠 首页</a>
-            <a href="/config">🔧 配置管理</a>
-            <a href="/booking">🎯 开始抢票</a>
-        </div>
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
 
-        <!-- 当前Cookie状态 -->
-        <div class="status-card">
-            <h3>📊 当前Cookie状态</h3>
-            <div id="currentCookieStatus">
-                <div style="display: flex; align-items: center;">
-                    <div
-                        style="width: 20px; height: 20px; border: 2px solid #667eea; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px;">
-                    </div>
-                    <span>正在检查当前Cookie状态...</span>
-                </div>
-            </div>
-            <div class="button-group" style="margin-top: 15px;">
-                <button class="btn btn-info" onclick="checkCurrentCookie()">
-                    🔄 重新检查
-                </button>
-                <button class="btn btn-secondary" onclick="showCurrentCookie()">
-                    👁️ 查看详情
-                </button>
-            </div>
-        </div>
+            50% {
+                opacity: 0.7;
+            }
 
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
-            <!-- Cookie管理主区域 -->
-            <div class="section">
-                <h3>🔑 更新Cookie</h3>
+            100% {
+                opacity: 1;
+            }
+        }
 
-                <div class="form-group">
-                    <label for="cookieText">Cookie字符串：</label>
-                    <textarea id="cookieText" class="form-control" rows="6"
-                        placeholder="请粘贴从浏览器复制的完整Cookie字符串..."></textarea>
-                </div>
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
 
-                <div class="button-group">
-                    <button class="btn btn-warning" onclick="testCookie()">
-                        ✅ 测试Cookie
-                    </button>
-                    <button class="btn btn-success" onclick="updateCookie()">
-                        💾 更新Cookie
-                    </button>
-                </div>
-
-                <div id="cookieResult"></div>
-            </div>
-
-            <!-- 帮助区域 -->
-            <div>
-                <div class="help-section">
-                    <h4>📖 获取Cookie指南</h4>
-                    <ol>
-                        <li>打开Chrome浏览器</li>
-                        <li>访问深大门户网站</li>
-                        <li>登录你的账号</li>
-                        <li>进入体育场馆预约系统</li>
-                        <li>按<kbd>F12</kbd>打开开发者工具</li>
-                        <li>切换到<strong>Network</strong>标签</li>
-                        <li>刷新页面（<kbd>F5</kbd>）</li>
-                        <li>点击任意请求</li>
-                        <li>在Request Headers中找到Cookie</li>
-                        <li>复制完整的Cookie值</li>
-                    </ol>
-                </div>
-
-                <div class="security-notice">
-                    <h4>🛡️ 安全提醒</h4>
-                    <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
-                        <li>Cookie包含登录信息，请勿分享</li>
-                        <li>Cookie有时效性，需定期更新</li>
-                        <li>系统提示失效时及时更新</li>
-                        <li>建议使用Chrome浏览器获取</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cookie详情模态框 -->
-    <div class="modal-overlay" id="cookieModal" onclick="hideModal()">
-        <div class="modal" onclick="event.stopPropagation()">
-            <button class="close-btn" onclick="hideModal()">&times;</button>
-            <h3>🔍 Cookie详情</h3>
-
-            <div class="form-group">
-                <label>Cookie内容：</label>
-                <textarea id="currentCookieContent" class="form-control" rows="8" readonly></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>解析字段：</label>
-                <div id="cookieFields" class="cookie-fields"></div>
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-info" onclick="copyCookieToInput()">
-                    📋 复制到输入框
-                </button>
-                <button class="btn btn-secondary" onclick="hideModal()">
-                    ❌ 关闭
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <style>
         @keyframes spin {
             0% {
                 transform: rotate(0deg);
@@ -398,168 +346,581 @@
             }
         }
 
-        kbd {
-            background: #f4f4f4;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            padding: 2px 4px;
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .status-item {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .status-item strong {
+            color: #667eea;
+        }
+
+        .password-saved-hint {
+            color: #28a745 !important;
             font-size: 12px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .form-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs-nav {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .tab-button:last-child {
+                border-bottom: none;
+            }
         }
     </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍪 Cookie管理</h1>
+            <p>管理登录凭证，确保系统正常访问</p>
+        </div>
+
+        <div class="nav-links">
+            <a href="/">🏠 首页</a>
+            <a href="/config">🔧 配置管理</a>
+            <a href="/booking">🎯 抢票</a>
+        </div>
+
+        <!-- Cookie状态卡片 -->
+        <div class="status-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <h3 style="margin: 0; color: #667eea;">🔐 Cookie状态</h3>
+                    <p style="margin: 5px 0 0 0; color: #666;">当前登录凭证验证信息</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline" onclick="refreshCookieStatus()">
+                        🔄 刷新状态
+                    </button>
+                </div>
+            </div>
+
+            <div id="cookieStatus" style="margin-top: 20px; text-align: center; padding: 20px;">
+                <div class="spinner"></div>
+                <span>正在检查Cookie状态...</span>
+            </div>
+        </div>
+
+        <!-- Cookie管理选项卡 -->
+        <div class="tabs-container">
+            <div class="tabs-nav">
+                <button class="tab-button active" onclick="switchTab('autoGet')">🤖 自动获取</button>
+                <button class="tab-button" onclick="switchTab('manualUpdate')">✏️ 手动更新</button>
+                <button class="tab-button" onclick="switchTab('instructions')">📖 使用说明</button>
+            </div>
+
+            <div class="tab-content">
+                <!-- 自动获取 -->
+                <div class="tab-pane active" id="autoGet">
+                    <div class="method-card">
+                        <div class="method-title">🤖 自动获取Cookie</div>
+                        <p style="color: #666; margin-bottom: 20px;">
+                            输入校园网账号密码，系统将启动浏览器自动登录。<strong>如需验证码，请在弹出的浏览器窗口中完成。</strong></p>
+
+                        <div class="alert alert-info">
+                            <strong>重要说明：</strong>
+                            <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                                <li>点击获取后会弹出浏览器窗口</li>
+                                <li>如果需要企业微信验证码，请在浏览器中输入</li>
+                                <li>完成登录后Cookie会自动获取</li>
+                                <li>整个过程大约需要30-180秒</li>
+                                <li><strong>请不要关闭弹出的浏览器窗口</strong></li>
+                            </ul>
+                        </div>
+
+                        <form id="autoGetForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>学号/工号:</label>
+                                    <input type="text" class="form-control" id="autoUsername" placeholder="请输入学号或工号">
+                                </div>
+                                <div class="form-group">
+                                    <label>密码:</label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="autoPassword"
+                                            placeholder="请输入统一身份认证密码">
+                                        <button type="button" class="btn btn-outline" onclick="clearSavedPassword()"
+                                            title="清除已保存的密码">
+                                            🗑️ 清除
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn" id="autoGetButton" onclick="autoGetCookie()">
+                                    🚀 自动获取Cookie
+                                </button>
+                                <button type="button" class="btn btn-outline" onclick="loadAccountConfig()">
+                                    🔄 重新加载账号
+                                </button>
+                            </div>
+                        </form>
+
+                        <div id="autoGetResult" style="display: none;">
+                            <div class="alert" id="autoGetAlert">
+                                <div id="autoGetMessage"></div>
+                                <div id="autoGetProgress" style="display: none; margin-top: 10px;">
+                                    <div style="background: #f0f0f0; border-radius: 10px; overflow: hidden;">
+                                        <div
+                                            style="background: linear-gradient(45deg, #667eea, #764ba2); height: 8px; width: 100%; animation: progress 2s ease-in-out infinite;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="autoGetStatusLog" style="display: none; margin-top: 10px;">
+                                    <small style="color: #666;">
+                                        <strong>详细状态：</strong>
+                                        <div id="statusLogContent" style="margin-top: 5px;"></div>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 手动更新 -->
+                <div class="tab-pane" id="manualUpdate">
+                    <div class="method-card">
+                        <div class="method-title">✏️ 手动更新Cookie</div>
+                        <p style="color: #666; margin-bottom: 20px;">如果自动获取失败，可以手动复制浏览器中的Cookie。</p>
+
+                        <form id="manualUpdateForm">
+                            <div class="form-group">
+                                <label>Cookie内容:</label>
+                                <textarea class="form-control cookie-textarea" id="cookieText" rows="6"
+                                    placeholder="请在此粘贴从浏览器复制的Cookie..."></textarea>
+                                <div class="form-text">
+                                    支持多种格式：浏览器开发者工具格式、多行格式等
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn" onclick="testCookie()">
+                                    ✅ 测试Cookie
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="updateCookie()">
+                                    💾 更新Cookie
+                                </button>
+                                <button type="button" class="btn btn-outline" onclick="clearCookieText()">
+                                    🗑️ 清空
+                                </button>
+                            </div>
+                        </form>
+
+                        <div id="manualResult" style="display: none;">
+                            <div class="alert" id="manualAlert">
+                                <div id="manualMessage"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 使用说明 -->
+                <div class="tab-pane" id="instructions">
+                    <div class="method-card">
+                        <div class="method-title">📖 Cookie获取说明</div>
+
+                        <h4 style="margin-top: 20px; color: #667eea;">🤖 自动获取方式（推荐）</h4>
+                        <div style="padding-left: 15px;">
+                            <p><span class="step-number">1</span>输入您的学号和统一身份认证密码</p>
+                            <p><span class="step-number">2</span>点击"自动获取Cookie"按钮</p>
+                            <p><span class="step-number">3</span>等待浏览器窗口弹出</p>
+                            <p><span class="step-number">4</span>如果需要企业微信验证码，在浏览器中输入</p>
+                            <p><span class="step-number">5</span>系统将自动完成登录并获取Cookie</p>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong>注意：</strong>
+                            <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                                <li>获取过程中会弹出浏览器窗口，这是正常现象</li>
+                                <li>如果遇到企业微信验证码，请及时在浏览器中输入</li>
+                                <li>请不要关闭浏览器窗口，等待自动完成</li>
+                                <li>如果长时间无响应，可以尝试手动获取方式</li>
+                            </ul>
+                        </div>
+
+                        <h4 style="margin-top: 20px; color: #667eea;">✏️ 手动获取方式</h4>
+                        <div style="padding-left: 15px;">
+                            <p><span class="step-number">1</span>使用浏览器访问 <code>https://ehall.szu.edu.cn</code> 并登录</p>
+                            <p><span class="step-number">2</span>进入体育场馆预约页面</p>
+                            <p><span class="step-number">3</span>按F12打开开发者工具，切换到Network选项卡</p>
+                            <p><span class="step-number">4</span>刷新页面，找到任意请求，复制其Cookie值</p>
+                            <p><span class="step-number">5</span>将Cookie粘贴到手动更新界面并点击更新</p>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong>重要提醒：</strong>
+                            <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                                <li>Cookie包含敏感信息，请勿泄露给他人</li>
+                                <li>Cookie有时效性，过期后需要重新获取</li>
+                                <li>建议定期更新Cookie以确保程序正常运行</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // 页面加载时检查当前Cookie状态
+        // 切换标签页
+        function switchTab(tabName) {
+            // 隐藏所有标签页内容
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+
+            // 移除所有按钮的激活状态
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // 显示选中的标签页
+            document.getElementById(tabName).classList.add('active');
+
+            // 激活对应的按钮
+            event.target.classList.add('active');
+        }
+
+        // 页面加载时检查Cookie状态
         document.addEventListener('DOMContentLoaded', function () {
-            checkCurrentCookie();
+            refreshCookieStatus();
+            loadAccountConfig();
         });
 
-        function showAlert(type, message) {
-            const result = document.getElementById('cookieResult');
-            result.innerHTML = `
-                <div class="alert alert-${type}">
-                    ${message}
-                </div>
-            `;
-        }
-
-        async function checkCurrentCookie() {
-            const statusDiv = document.getElementById('currentCookieStatus');
+        // 刷新Cookie状态
+        function refreshCookieStatus() {
+            const statusDiv = document.getElementById('cookieStatus');
             statusDiv.innerHTML = `
-                <div style="display: flex; align-items: center;">
-                    <div style="width: 20px; height: 20px; border: 2px solid #667eea; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px;"></div>
-                    <span>正在检查当前Cookie状态...</span>
-                </div>
+                <div class="spinner"></div>
+                <span>正在检查Cookie状态...</span>
             `;
 
-            try {
-                const response = await fetch('/api/cookie/current');
-                const result = await response.json();
+            fetch('/api/cookie/current')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        const statusClass = data.valid ? 'status-valid' : 'status-invalid';
+                        const statusText = data.valid ? '有效' : '无效';
+                        const statusIcon = data.valid ? '✅' : '❌';
 
-                if (result.success) {
-                    const statusClass = result.valid ? 'success' : 'danger';
-                    const statusIcon = result.valid ? '✅' : '❌';
-                    const statusText = result.valid ? '有效' : '无效';
-
+                        statusDiv.innerHTML = `
+                            <div class="status-grid">
+                                <div class="status-item">
+                                    <strong>Cookie状态</strong><br>
+                                    <span class="status-indicator ${statusClass}"></span>${statusIcon} ${statusText}<br>
+                                    <small style="color: #666;">Cookie字段数量: ${data.cookie_count}</small>
+                                </div>
+                                <div class="status-item">
+                                    <strong>验证信息</strong><br>
+                                    <span style="color: #666;">${data.message}</span><br>
+                                    ${data.last_update ? `<small style="color: #666;">最后更新: ${data.last_update}</small>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        statusDiv.innerHTML = `
+                            <div style="text-align: center;">
+                                <span class="status-indicator status-invalid"></span>
+                                <strong>获取状态失败</strong>
+                                <p style="color: #dc3545; margin-top: 10px;">${data.message}</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('检查Cookie状态错误:', error);
                     statusDiv.innerHTML = `
-                        <div class="alert alert-${statusClass}" style="margin: 0;">
-                            <strong>${statusIcon} Cookie状态: ${statusText}</strong><br>
-                            <small>${result.message}</small><br>
-                            <small style="color: #666;">包含 ${result.cookie_count} 个字段 | 最后更新: ${result.last_update || '未知'}</small>
+                        <div style="text-align: center; color: #dc3545;">
+                            ⚠️ 检查状态时发生错误: ${error.message}
+                            <br><button class="btn btn-outline" onclick="refreshCookieStatus()" style="margin-top: 10px;">重试</button>
                         </div>
                     `;
-                } else {
-                    statusDiv.innerHTML = `
-                        <div class="alert alert-warning" style="margin: 0;">
-                            <strong>⚠️ 无法获取Cookie信息</strong><br>
-                            <small>${result.message}</small>
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                statusDiv.innerHTML = `
-                    <div class="alert alert-danger" style="margin: 0;">
-                        <strong>❌ 检查失败</strong><br>
-                        <small>${error.message}</small>
-                    </div>
-                `;
-            }
+                });
         }
 
-        async function showCurrentCookie() {
-            try {
-                const response = await fetch('/api/cookie/current');
-                const result = await response.json();
+        // 加载账户配置
+        function loadAccountConfig() {
+            fetch('/api/config/campus_account')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.account) {
+                        const usernameField = document.getElementById('autoUsername');
+                        const passwordField = document.getElementById('autoPassword');
 
-                if (result.success) {
-                    document.getElementById('currentCookieContent').value = result.cookie_text || '';
-
-                    const fieldsDiv = document.getElementById('cookieFields');
-                    if (result.cookie_fields && Object.keys(result.cookie_fields).length > 0) {
-                        let fieldsHtml = '';
-                        for (const [key, value] of Object.entries(result.cookie_fields)) {
-                            const truncatedValue = value.length > 50 ? value.substring(0, 50) + '...' : value;
-                            fieldsHtml += `
-                                <div class="cookie-field">
-                                    <div class="cookie-key">${key}</div>
-                                    <div class="cookie-value">${truncatedValue}</div>
-                                </div>
-                            `;
+                        // 填充用户名
+                        if (data.account.username) {
+                            usernameField.value = data.account.username;
                         }
-                        fieldsDiv.innerHTML = fieldsHtml;
-                    } else {
-                        fieldsDiv.innerHTML = '<p style="text-align: center; color: #666;">无Cookie字段信息</p>';
+
+                        // 如果密码已保存，设置一个标记
+                        if (data.account.password && data.account.password !== '') {
+                            passwordField.placeholder = '密码已保存，如需修改请重新输入';
+                            passwordField.setAttribute('data-has-saved-password', 'true');
+                            // 显示密码已保存的提示
+                            showPasswordSavedHint();
+                        } else {
+                            passwordField.placeholder = '请输入统一身份认证密码';
+                            passwordField.removeAttribute('data-has-saved-password');
+                        }
+                    }
+                })
+                .catch(error => console.error('加载账户配置失败:', error));
+        }
+
+        // 显示密码已保存的提示
+        function showPasswordSavedHint() {
+            const passwordField = document.getElementById('autoPassword');
+            const parentDiv = passwordField.parentElement;
+
+            // 移除已存在的提示
+            const existingHint = parentDiv.querySelector('.password-saved-hint');
+            if (existingHint) {
+                existingHint.remove();
+            }
+
+            // 添加新的提示
+            const hint = document.createElement('small');
+            hint.className = 'text-success password-saved-hint mt-1';
+            hint.innerHTML = `
+                <i class="bi bi-check-circle"></i> 
+                <span>密码已保存</span><br>
+                <span>可直接获取Cookie</span>
+                `;
+            parentDiv.appendChild(hint);
+        }
+
+        // 自动获取Cookie
+        function autoGetCookie() {
+            const username = document.getElementById('autoUsername').value.trim();
+            const passwordField = document.getElementById('autoPassword');
+            let password = passwordField.value.trim();
+
+            // 检查用户名
+            if (!username) {
+                showAutoGetResult('请输入用户名', 'danger');
+                return;
+            }
+
+            // 检查密码：如果有保存的密码且当前输入为空，使用保存的密码
+            const hasSavedPassword = passwordField.getAttribute('data-has-saved-password') === 'true';
+
+            if (!password && !hasSavedPassword) {
+                showAutoGetResult('请输入密码', 'danger');
+                return;
+            }
+
+            // 如果没有输入新密码但有保存的密码，使用保存的密码标记
+            if (!password && hasSavedPassword) {
+                password = '***'; // 特殊标记，表示使用已保存的密码
+            }
+
+            const resultDiv = document.getElementById('autoGetResult');
+            const messageDiv = document.getElementById('autoGetMessage');
+            const progressDiv = document.getElementById('autoGetProgress');
+            const statusLogDiv = document.getElementById('autoGetStatusLog');
+            const statusLogContent = document.getElementById('statusLogContent');
+            const button = document.getElementById('autoGetButton');
+
+            // 显示进度
+            messageDiv.innerHTML = `
+                <div class="browser-warning">
+                    <i class="bi bi-hourglass-split"></i> 
+                    <strong>正在启动浏览器获取Cookie...</strong>
+                    <br><small class="text-muted">
+                        🌐 使用已保存的账号信息，请注意浏览器窗口弹出。
+                        <br>如需企业微信验证码请及时输入，整个过程可能需要30-180秒。
+                        <br><strong>⚠️ 请不要关闭弹出的浏览器窗口！</strong>
+                    </small>
+                </div>
+            `;
+            resultDiv.className = 'mt-3 alert alert-info';
+            resultDiv.style.display = 'block';
+            progressDiv.style.display = 'block';
+            statusLogDiv.style.display = 'none';
+
+            // 禁用按钮防止重复点击
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-hourglass-split"></i> 获取中...';
+
+            // 设置较长的超时时间
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 240000); // 4分钟超时
+
+            fetch('/api/cookie/auto_get', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+                signal: controller.signal
+            })
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    progressDiv.style.display = 'none';
+
+                    // 显示详细状态日志
+                    if (data.status_log && data.status_log.length > 0) {
+                        statusLogContent.innerHTML = data.status_log.map(msg => `<div>• ${msg}</div>`).join('');
+                        statusLogDiv.style.display = 'block';
                     }
 
-                    document.getElementById('cookieModal').style.display = 'block';
-                } else {
-                    showAlert('danger', '无法获取当前Cookie: ' + result.message);
-                }
-            } catch (error) {
-                showAlert('danger', '获取Cookie失败: ' + error.message);
-            }
-        }
+                    if (data.success) {
+                        messageDiv.innerHTML = `
+                        <i class="bi bi-check-circle"></i> 
+                        <strong>获取成功！</strong> Cookie已自动更新
+                        <br><small class="text-muted">Cookie长度: ${data.cookie.length} 字符</small>
+                    `;
+                        resultDiv.className = 'mt-3 alert alert-success';
 
-        function hideModal() {
-            document.getElementById('cookieModal').style.display = 'none';
-        }
+                        // 刷新状态并保存账户信息
+                        setTimeout(() => refreshCookieStatus(), 1000);
 
-        function copyCookieToInput() {
-            const cookieContent = document.getElementById('currentCookieContent').value;
-            document.getElementById('cookieText').value = cookieContent;
-            hideModal();
-            showAlert('info', '📋 Cookie已复制到输入框');
-        }
+                        // 如果使用了新密码，保存账户信息
+                        if (password !== '***') {
+                            saveAccountConfig(username, password);
+                        }
 
-        async function testCookie() {
-            const cookieText = document.getElementById('cookieText').value.trim();
-            if (!cookieText) {
-                showAlert('warning', '⚠️ 请先输入Cookie');
-                return;
-            }
+                        // 更新界面状态
+                        if (password !== '***') {
+                            passwordField.setAttribute('data-has-saved-password', 'true');
+                            passwordField.placeholder = '密码已保存，如需修改请重新输入';
+                            passwordField.value = ''; // 清空显示的密码
+                            showPasswordSavedHint();
+                        }
+                    } else {
+                        messageDiv.innerHTML = `
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        <strong>获取失败：</strong>${data.message}
+                        <br><small class="text-muted">
+                            如果遇到企业微信验证码问题，请尝试手动获取方式
+                        </small>
+                    `;
+                        resultDiv.className = 'mt-3 alert alert-danger';
+                    }
+                })
+                .catch(error => {
+                    clearTimeout(timeoutId);
+                    progressDiv.style.display = 'none';
 
-            try {
-                const response = await fetch('/api/cookie/test', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cookie: cookieText })
+                    let errorMessage = '网络错误，请检查网络连接后重试';
+                    if (error.name === 'AbortError') {
+                        errorMessage = '请求超时，可能是验证码输入时间过长';
+                    } else if (error.message.includes('HTTP')) {
+                        errorMessage = `服务器错误: ${error.message}`;
+                    }
+
+                    messageDiv.innerHTML = `
+                    <i class="bi bi-x-circle"></i> 
+                    <strong>错误：</strong>${errorMessage}
+                    <br><small class="text-muted">请尝试重新获取或使用手动方式</small>
+                `;
+                    resultDiv.className = 'mt-3 alert alert-danger';
+                    console.error('自动获取Cookie失败:', error);
+                })
+                .finally(() => {
+                    // 恢复按钮状态
+                    button.disabled = false;
+                    button.innerHTML = '<i class="bi bi-download"></i> 自动获取Cookie';
                 });
+        }
 
-                const result = await response.json();
-                if (result.success) {
-                    showAlert('success', `✅ ${result.message}<br><small>包含 ${result.cookie_count} 个Cookie字段</small>`);
-                } else {
-                    showAlert('danger', `❌ ${result.message}`);
-                }
-            } catch (error) {
-                showAlert('danger', '❌ 测试失败: ' + error.message);
+        // 保存账户配置（只在密码变更时调用）
+        function saveAccountConfig(username, password) {
+            if (password === '***') {
+                return; // 不保存特殊标记
+            }
+
+            fetch('/api/config/campus_account', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('账户配置保存成功');
+                    } else {
+                        console.error('账户配置保存失败:', data.message);
+                    }
+                })
+                .catch(error => console.error('保存账户配置失败:', error));
+        }
+
+        // 清除保存的密码
+        function clearSavedPassword() {
+            const passwordField = document.getElementById('autoPassword');
+            passwordField.removeAttribute('data-has-saved-password');
+            passwordField.placeholder = '请输入统一身份认证密码';
+            passwordField.value = '';
+
+            // 移除提示
+            const hint = passwordField.parentElement.querySelector('.password-saved-hint');
+            if (hint) {
+                hint.remove();
+            }
+
+            // 清除服务器端保存的密码
+            const username = document.getElementById('autoUsername').value.trim();
+            if (username) {
+                saveAccountConfig(username, ''); // 保存空密码
             }
         }
 
-        async function updateCookie() {
-            const cookieText = document.getElementById('cookieText').value.trim();
-            if (!cookieText) {
-                showAlert('warning', '⚠️ 请先输入Cookie');
-                return;
-            }
+        function showAutoGetResult(message, type) {
+            const resultDiv = document.getElementById('autoGetResult');
+            const alertDiv = document.getElementById('autoGetAlert');
+            const messageDiv = document.getElementById('autoGetMessage');
 
-            try {
-                const response = await fetch('/api/cookie/update', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cookie: cookieText })
-                });
+            messageDiv.innerHTML = message;
+            alertDiv.className = `alert alert-${type}`;
+            resultDiv.style.display = 'block';
+        }
 
-                const result = await response.json();
-                if (result.success) {
-                    showAlert('success', `✅ ${result.message}`);
-                    document.getElementById('cookieText').value = '';
-                    checkCurrentCookie(); // 更新状态显示
-                } else {
-                    showAlert('danger', `❌ ${result.message}`);
-                }
-            } catch (error) {
-                showAlert('danger', '❌ 更新失败: ' + error.message);
-            }
+        function showManualResult(message, type) {
+            const resultDiv = document.getElementById('manualResult');
+            const alertDiv = document.getElementById('manualAlert');
+            const messageDiv = document.getElementById('manualMessage');
+
+            messageDiv.innerHTML = message;
+            alertDiv.className = `alert alert-${type}`;
+            resultDiv.style.display = 'block';
         }
     </script>
 </body>

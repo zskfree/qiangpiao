@@ -13,6 +13,27 @@ import atexit
 import threading
 from threading import Timer
 
+# 处理PyInstaller打包后的资源路径
+def resource_path(relative_path):
+    """获取资源文件的绝对路径，支持PyInstaller打包"""
+    try:
+        # PyInstaller创建临时文件夹并将路径存储在_MEIPASS中
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
+
+# 设置工作目录
+if getattr(sys, 'frozen', False):
+    # 如果是exe运行，设置工作目录为exe所在目录
+    application_path = os.path.dirname(sys.executable)
+    os.chdir(application_path)
+else:
+    # 如果是Python脚本运行，设置工作目录为脚本所在目录
+    application_path = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(application_path)
+
 # 全局变量记录所有运行的线程
 active_threads = []
 app_instance = None
@@ -70,6 +91,20 @@ def setup_logging():
     logging.getLogger('werkzeug').setLevel(logging.WARNING)
     logging.getLogger('flask').setLevel(logging.WARNING)
     logging.getLogger().setLevel(logging.WARNING)
+    
+    # 过滤Chrome和Selenium的SSL错误日志
+    import warnings
+    warnings.filterwarnings("ignore", category=UserWarning)
+    warnings.filterwarnings("ignore", message=".*SSL.*")
+    warnings.filterwarnings("ignore", message=".*certificate.*")
+    
+    # 设置urllib3日志级别，减少SSL警告
+    try:
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+    except:
+        pass
 
 def cleanup_files():
     """清理历史记录和日志文件"""
@@ -88,10 +123,15 @@ def cleanup_files():
             for old_backup in backup_files[:-3]:
                 os.remove(old_backup)
         
-        # 清理临时文件
-        temp_files = [f for f in os.listdir('.') if f.endswith('.tmp') or f.endswith('.temp')]
-        for temp_file in temp_files:
-            os.remove(temp_file)
+        # 清理其他临时文件
+        temp_extensions = ['.tmp', '.temp', '.pyc']
+        for ext in temp_extensions:
+            temp_files = [f for f in os.listdir('.') if f.endswith(ext)]
+            for temp_file in temp_files:
+                try:
+                    os.remove(temp_file)
+                except:
+                    pass
         
         # 清理Python缓存文件
         cache_dirs = ['__pycache__']
@@ -99,17 +139,6 @@ def cleanup_files():
             if os.path.exists(cache_dir):
                 import shutil
                 shutil.rmtree(cache_dir, ignore_errors=True)
-        
-        # 清理.pyc文件
-        pyc_files = [f for f in os.listdir('.') if f.endswith('.pyc')]
-        for pyc_file in pyc_files:
-            os.remove(pyc_file)
-        
-        # 清理状态缓存文件（如果存在）
-        state_files = ['booking_state.json', 'app_state.json', 'session_state.json']
-        for state_file in state_files:
-            if os.path.exists(state_file):
-                os.remove(state_file)
             
     except Exception:
         pass  # 静默处理清理错误
@@ -154,14 +183,57 @@ def force_reset_booking_status():
     except Exception:
         pass
 
+def check_files():
+    """检查必要文件"""
+    print("� 检查必要文件...")
+    
+    # 检查Python文件
+    required_files = ['web_app.py', 'config.py', 'qiangpiao.py']
+    missing_files = []
+    
+    for file in required_files:
+        if not os.path.exists(file):
+            missing_files.append(file)
+    
+    if missing_files:
+        print(f"❌ 缺少必要文件: {', '.join(missing_files)}")
+        return False
+    
+    # 检查模板目录
+    templates_dir = resource_path('templates')
+    if not os.path.exists(templates_dir) and not os.path.exists('templates'):
+        print("❌ 缺少templates目录")
+        print("💡 请确保templates文件夹及其中的HTML文件存在")
+        return False
+    
+    return True
+
 def main():
     global app_instance
     
-    print("🚀 正在启动...")
+    print("🚀 深大体育场馆预约系统 v1.0")
+    print("=" * 50)
     
-    # 注册信号处理器
-    signal.signal(signal.SIGINT, signal_handler)  # Ctrl+C
-    signal.signal(signal.SIGTERM, signal_handler)  # 终止信号
+    # 初始化错误抑制（在其他导入之前）
+    try:
+        from error_filter import initialize_error_suppression
+        initialize_error_suppression()
+    except ImportError:
+        pass  # 如果没有错误过滤器模块，继续正常运行
+    
+    # 显示运行环境信息
+    if getattr(sys, 'frozen', False):
+        print("📦 运行模式: EXE独立版本")
+        print(f"📁 工作目录: {os.getcwd()}")
+    else:
+        print("🐍 运行模式: Python脚本")
+    
+    # 注册信号处理器（仅在非Windows系统或支持的情况下）
+    try:
+        signal.signal(signal.SIGINT, signal_handler)  # Ctrl+C
+        signal.signal(signal.SIGTERM, signal_handler)  # 终止信号
+    except:
+        pass  # 在Windows的exe中可能不支持某些信号
     
     # 注册退出处理器
     atexit.register(cleanup_on_exit)
@@ -175,29 +247,18 @@ def main():
     reset_global_state()
     
     # 检查必要文件
-    print("📁 检查必要文件...")
-    required_files = ['web_app.py', 'config.py', 'qiangpiao.py']
-    missing_files = [f for f in required_files if not os.path.exists(f)]
-    
-    if missing_files:
-        print(f"❌ 缺少必要文件: {', '.join(missing_files)}")
-        input("按回车键退出...")
-        sys.exit(1)
-    
-    # 检查模板目录
-    if not os.path.exists('templates'):
-        print("❌ 缺少templates目录")
-        print("💡 请确保templates文件夹及其中的HTML文件存在")
+    if not check_files():
         input("按回车键退出...")
         sys.exit(1)
     
     try:
-        # 设置日志级别，减少输出
+        # 设置日志级别，减少输出（包括SSL错误过滤）
         setup_logging()
         
         print("📡 启动Web服务器...")
         print("🌐 服务地址: http://localhost:5000")
         print("💡 按 Ctrl+C 可停止服务")
+        print("💡 浏览器SSL错误提示可以忽略，不影响功能")
         print("-" * 50)
 
         # 延迟3秒后打开浏览器
@@ -220,15 +281,17 @@ def main():
         reset_booking_status()
         
         print("🌐 Web服务器启动成功！")
-        # 启动Flask（保留基本输出）
+        print("💡 首次启动可能需要几秒钟...")
+        
+        # 启动Flask（生产模式）
         app.run(debug=False, host='127.0.0.1', port=5000, use_reloader=False, threaded=True)
         
     except ImportError as e:
         print(f"❌ 导入模块失败: {e}")
         print("💡 可能的解决方案:")
-        print("   1. 检查所有Python文件语法是否正确")
-        print("   2. 确保Flask已安装: pip install flask")
-        print("   3. 检查qiangpiao.py文件是否存在且无语法错误")
+        print("   1. 检查所有Python文件是否存在")
+        print("   2. 重新下载完整的程序包")
+        print("   3. 确保程序没有被杀毒软件误删")
         input("按回车键退出...")
     except OSError as e:
         if "Address already in use" in str(e):

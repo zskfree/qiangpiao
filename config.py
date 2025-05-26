@@ -19,7 +19,7 @@ CONFIG = {
     "RETRY_INTERVAL": 1,       # 重试间隔（秒）
     "REQUEST_TIMEOUT": 10,     # 请求超时时间（秒）
     # 预约日期
-    "TARGET_DATE": "2025-05-26",
+    "TARGET_DATE": "2025-05-27",
 
     # 优先预约的时段关键词（按优先级排序）
     "PREFERRED_TIMES": ['20:00-21:00', '21:00-22:00'],
@@ -56,5 +56,20 @@ TIME_SLOTS = [
     "20:00-21:00", "21:00-22:00"
 ]
 
-# Cookie配置 (占位符，实际Cookie在qiangpiao.py中定义)
-COOKIE = ""
+# 校园网账户
+CAMPUS_ACCOUNT = {
+    "username": "2300123999",  # 学号或工号
+    "password": ""
+}
+
+# 导出配置供其他模块使用
+def get_campus_account():
+    """获取校园网账户信息"""
+    return CAMPUS_ACCOUNT.copy()
+
+def update_campus_account(username, password):
+    """更新校园网账户信息"""
+    global CAMPUS_ACCOUNT
+    CAMPUS_ACCOUNT["username"] = username
+    CAMPUS_ACCOUNT["password"] = password
+    return True
