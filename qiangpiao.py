@@ -45,7 +45,7 @@ session.mount('https://', SSLAdapter())
 
 
 raw_cookie = """
-JSESSIONID=t58LkLP3i5VNk4XDZZ0nqeqtFY2ML_KOBWi9iAgOlDMRWaBLkTRl!-1876930309; 
+route=07389b9fd090f647166fb5e572add976;
 """
 
 # 解析Cookie字符串
@@ -761,88 +761,224 @@ def extract_cookies_from_text(cookie_text):
     # 处理不同格式的Cookie字符串
     cookie_text = cookie_text.strip()
     
-    # 如果是浏览器复制的格式（分号分隔）
-    if ';' in cookie_text:
-        for item in cookie_text.split(';'):
-            item = item.strip()
-            if '=' in item:
-                key, value = item.split('=', 1)
-                cookies[key.strip()] = value.strip()
+    print(f"开始解析Cookie文本，长度: {len(cookie_text)}")
     
-    # 如果是多行格式
-    elif '\n' in cookie_text:
-        for line in cookie_text.split('\n'):
-            line = line.strip()
-            if '=' in line and not line.startswith('#'):
-                key, value = line.split('=', 1)
-                cookies[key.strip()] = value.strip()
+    try:
+        # 如果是浏览器复制的格式（分号分隔）
+        if ';' in cookie_text:
+            print("检测到分号分隔格式")
+            for item in cookie_text.split(';'):
+                item = item.strip()
+                if '=' in item and item:
+                    try:
+                        key, value = item.split('=', 1)
+                        key = key.strip()
+                        value = value.strip()
+                        if key and value:  # 确保键值都不为空
+                            cookies[key] = value
+                            print(f"解析Cookie字段: {key} = {value[:20]}...")
+                    except ValueError:
+                        print(f"跳过无效的Cookie项: {item}")
+                        continue
+        
+        # 如果是多行格式
+        elif '\n' in cookie_text:
+            print("检测到多行格式")
+            for line in cookie_text.split('\n'):
+                line = line.strip()
+                if line and '=' in line and not line.startswith('#'):
+                    try:
+                        key, value = line.split('=', 1)
+                        key = key.strip()
+                        value = value.strip()
+                        if key and value:
+                            cookies[key] = value
+                            print(f"解析Cookie字段: {key} = {value[:20]}...")
+                    except ValueError:
+                        print(f"跳过无效的行: {line}")
+                        continue
+        
+        # 如果是单行且没有分号，可能是键值对格式
+        elif '=' in cookie_text:
+            print("检测到单个键值对格式")
+            try:
+                key, value = cookie_text.split('=', 1)
+                key = key.strip()
+                value = value.strip()
+                if key and value:
+                    cookies[key] = value
+                    print(f"解析Cookie字段: {key} = {value[:20]}...")
+            except ValueError:
+                print("无法解析单个键值对")
+        
+        else:
+            print("未识别的Cookie格式")
     
+    except Exception as e:
+        print(f"Cookie解析过程出错: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    print(f"最终解析得到 {len(cookies)} 个Cookie字段")
     return cookies
 
 def test_cookie_validity(cookies_dict):
     """测试Cookie是否有效"""
+    if not cookies_dict:
+        return False, "Cookie字典为空"
+    
+    print(f"开始测试Cookie有效性，共 {len(cookies_dict)} 个字段")
+    
     try:
+        # 创建测试用的headers
+        test_headers = headers.copy()
+        test_headers.update({
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache"
+        })
+        
+        print("发送测试请求...")
         resp = session.get(
             "https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do",
-            headers=headers,
+            headers=test_headers,
             cookies=cookies_dict,
             verify=False,
-            timeout=10
+            timeout=15,  # 增加超时时间
+            allow_redirects=True
         )
         
-        # 检查响应
-        if resp.status_code == 200:
-            if "登录" in resp.text or "login" in resp.text.lower():
-                return False, "需要重新登录"
-            elif "体育场馆" in resp.text or "sportVenue" in resp.text:
-                return True, "Cookie有效"
-            else:
-                return False, "页面内容异常"
-        elif resp.status_code == 403:
-            return False, "访问被拒绝"
-        else:
+        print(f"测试响应状态码: {resp.status_code}")
+        print(f"响应URL: {resp.url}")
+        print(f"响应头Content-Type: {resp.headers.get('Content-Type', 'N/A')}")
+        
+        # 检查响应状态码
+        if resp.status_code == 403:
+            print("收到403错误，可能Cookie已失效或被限制")
+            return False, "访问被拒绝，Cookie可能已失效"
+        elif resp.status_code == 302 or resp.status_code == 301:
+            print(f"收到重定向响应，目标: {resp.headers.get('Location', 'N/A')}")
+            if "login" in resp.headers.get('Location', '').lower():
+                return False, "被重定向到登录页面，需要重新登录"
+        elif resp.status_code != 200:
+            print(f"收到异常状态码: {resp.status_code}")
             return False, f"HTTP错误: {resp.status_code}"
+        
+        # 检查响应内容
+        response_text = resp.text
+        print(f"响应内容长度: {len(response_text)}")
+        
+        # 检查是否需要登录
+        login_indicators = ["登录", "login", "用户名", "密码", "验证码", "authentication"]
+        needs_login = any(indicator in response_text.lower() for indicator in login_indicators)
+        
+        if needs_login:
+            print("页面内容显示需要登录")
+            return False, "需要重新登录"
+        
+        # 检查是否是正确的体育场馆页面
+        success_indicators = ["体育场馆", "sportVenue", "预约", "场地", "booking"]
+        is_sport_page = any(indicator in response_text for indicator in success_indicators)
+        
+        if is_sport_page:
+            print("✅ Cookie有效，成功访问体育场馆页面")
+            return True, "Cookie有效，页面访问正常"
+        
+        # 检查页面是否有其他有效内容
+        if len(response_text) > 1000:  # 有实质内容
+            print("⚠️ Cookie可能有效，但页面内容未包含预期关键词")
+            return True, "Cookie可能有效，但页面内容异常"
+        else:
+            print("❌ 页面内容过少，可能出现问题")
+            return False, "页面内容异常，可能需要重新登录"
             
+    except requests.exceptions.Timeout as e:
+        print(f"请求超时: {e}")
+        return False, "请求超时，请检查网络连接"
+    except requests.exceptions.SSLError as e:
+        print(f"SSL错误: {e}")
+        return False, "SSL连接错误"
+    except requests.exceptions.ConnectionError as e:
+        print(f"连接错误: {e}")
+        return False, "网络连接失败"
+    except requests.exceptions.RequestException as e:
+        print(f"请求异常: {e}")
+        return False, f"请求失败: {str(e)}"
     except Exception as e:
-        return False, f"测试失败: {e}"
+        print(f"未知错误: {e}")
+        import traceback
+        traceback.print_exc()
+        return False, f"测试失败: {str(e)}"
 
 def update_cookie_in_file(new_cookie_text):
     """更新文件中的Cookie"""
     try:
-        # 读取原文件
-        with open('qiangpiao.py', 'r', encoding='utf-8') as f:
-            content = f.read()
+        print(f"开始更新Cookie到文件，新Cookie长度: {len(new_cookie_text)}")
         
-        # 替换cookie
+        # 读取原文件
+        try:
+            with open('qiangpiao.py', 'r', encoding='utf-8') as f:
+                content = f.read()
+            print("成功读取qiangpiao.py文件")
+        except Exception as e:
+            print(f"读取文件失败: {e}")
+            return False
+        
+        # 查找并替换cookie
         start_marker = 'raw_cookie = """'
         end_marker = '"""'
         
         start_idx = content.find(start_marker)
         if start_idx == -1:
-            logging.error("未找到cookie位置！")
+            print("❌ 未找到cookie起始位置")
             return False
         
         start_idx += len(start_marker)
         end_idx = content.find(end_marker, start_idx)
         
         if end_idx == -1:
-            logging.error("未找到cookie结束位置！")
+            print("❌ 未找到cookie结束位置")
             return False
         
+        print(f"找到Cookie位置: {start_idx} - {end_idx}")
+        
+        # 构造新内容
         new_content = content[:start_idx] + '\n' + new_cookie_text + '\n' + content[end_idx:]
         
-        # 写入文件
-        with open('qiangpiao.py', 'w', encoding='utf-8') as f:
-            f.write(new_content)
+        # 写入新文件
+        try:
+            with open('qiangpiao.py', 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            print("✅ Cookie写入文件成功")
+        except Exception as e:
+            print(f"写入文件失败: {e}")
+            return False
         
-        logging.info("Cookie更新成功！")
+        # 验证写入结果
+        try:
+            with open('qiangpiao.py', 'r', encoding='utf-8') as f:
+                verify_content = f.read()
+            if new_cookie_text.strip() in verify_content:
+                print("✅ Cookie更新验证成功")
+            else:
+                print("⚠️ Cookie更新验证失败，内容可能不匹配")
+        except Exception as e:
+            print(f"验证更新失败: {e}")
+        
+        print("✅ Cookie更新成功！")
         
         # 重新加载cookies到全局变量
-        global cookies
-        cookies = extract_cookies_from_text(new_cookie_text)
+        try:
+            global cookies
+            cookies = extract_cookies_from_text(new_cookie_text)
+            print(f"全局cookies已更新，字段数: {len(cookies)}")
+        except Exception as e:
+            print(f"更新全局cookies失败: {e}")
         
         return True
         
     except Exception as e:
-        logging.error(f"更新失败: {e}")
+        print(f"❌ 更新失败: {e}")
+        import traceback
+        traceback.print_exc()
         return False

@@ -89,44 +89,132 @@ def update_config():
 def test_cookie():
     """测试Cookie有效性"""
     try:
-        cookie_text = request.json.get('cookie', '')
+        data = request.json
+        cookie_text = data.get('cookie', '').strip()
+        
         if not cookie_text:
             return jsonify({'success': False, 'message': 'Cookie不能为空'})
         
-        cookies = extract_cookies_from_text(cookie_text)
-        is_valid, message = test_cookie_validity(cookies)
+        print(f"测试Cookie文本长度: {len(cookie_text)}")
         
-        return jsonify({
-            'success': is_valid,
-            'message': message,
-            'cookie_count': len(cookies)
-        })
+        # 解析Cookie
+        try:
+            cookies = extract_cookies_from_text(cookie_text)
+            print(f"解析得到Cookie字段数量: {len(cookies)}")
+            
+            if not cookies:
+                return jsonify({'success': False, 'message': 'Cookie格式无效，无法解析出任何字段'})
+            
+            # 显示解析的关键Cookie字段
+            key_cookies = ['route', 'JSESSIONID', 'MOD_AUTH_CAS']
+            found_keys = [key for key in key_cookies if key in cookies]
+            print(f"找到关键Cookie字段: {found_keys}")
+            
+        except Exception as e:
+            print(f"Cookie解析失败: {e}")
+            return jsonify({'success': False, 'message': f'Cookie解析失败: {str(e)}'})
+        
+        # 测试Cookie有效性
+        print("开始测试Cookie有效性...")
+        try:
+            is_valid, message = test_cookie_validity(cookies)
+            print(f"Cookie测试结果: {is_valid}, 消息: {message}")
+            
+            # 返回详细的测试结果
+            return jsonify({
+                'success': is_valid,
+                'message': message,
+                'cookie_count': len(cookies),
+                'found_keys': found_keys,
+                'details': {
+                    'total_fields': len(cookies),
+                    'key_fields_found': len(found_keys),
+                    'cookie_sample': {k: v[:20] + '...' if len(v) > 20 else v 
+                                    for k, v in list(cookies.items())[:3]}
+                }
+            })
+            
+        except Exception as e:
+            print(f"Cookie测试过程出错: {e}")
+            return jsonify({
+                'success': False, 
+                'message': f'测试过程出错: {str(e)}',
+                'cookie_count': len(cookies),
+                'found_keys': found_keys
+            })
+        
     except Exception as e:
-        return jsonify({'success': False, 'message': f'测试失败: {str(e)}'})
+        print(f"Cookie测试接口错误: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': f'接口错误: {str(e)}'})
 
 @app.route('/api/cookie/update', methods=['POST'])
 def update_cookie():
     """更新Cookie"""
     try:
-        cookie_text = request.json.get('cookie', '')
+        data = request.json
+        cookie_text = data.get('cookie', '').strip()
+        
         if not cookie_text:
             return jsonify({'success': False, 'message': 'Cookie不能为空'})
         
-        # 先测试Cookie有效性
-        cookies = extract_cookies_from_text(cookie_text)
-        is_valid, message = test_cookie_validity(cookies)
+        print(f"开始更新Cookie，文本长度: {len(cookie_text)}")
         
-        if not is_valid:
-            return jsonify({'success': False, 'message': f'Cookie无效: {message}'})
+        # 先解析Cookie
+        try:
+            cookies = extract_cookies_from_text(cookie_text)
+            print(f"解析得到Cookie字段: {len(cookies)} 个")
+            
+            if not cookies:
+                return jsonify({'success': False, 'message': 'Cookie格式无效，无法解析'})
+            
+        except Exception as e:
+            print(f"Cookie解析失败: {e}")
+            return jsonify({'success': False, 'message': f'Cookie解析失败: {str(e)}'})
+        
+        # 先测试新Cookie的有效性
+        print("验证新Cookie有效性...")
+        try:
+            is_valid, test_message = test_cookie_validity(cookies)
+            print(f"Cookie验证结果: {is_valid}, 消息: {test_message}")
+            
+            if not is_valid:
+                return jsonify({
+                    'success': False, 
+                    'message': f'Cookie无效，无法更新: {test_message}',
+                    'test_result': test_message
+                })
+            
+        except Exception as e:
+            print(f"Cookie验证过程出错: {e}")
+            # 验证出错时也允许更新，但给出警告
+            pass
         
         # 更新到文件
-        success = update_cookie_in_file(cookie_text)
+        print("开始更新Cookie到文件...")
+        try:
+            success = update_cookie_in_file(cookie_text)
+            
+            if success:
+                print("✅ Cookie更新成功")
+                return jsonify({
+                    'success': True, 
+                    'message': 'Cookie更新成功！请刷新页面查看最新状态',
+                    'cookie_count': len(cookies)
+                })
+            else:
+                print("❌ Cookie文件更新失败")
+                return jsonify({'success': False, 'message': 'Cookie文件更新失败'})
+                
+        except Exception as e:
+            print(f"文件更新过程出错: {e}")
+            return jsonify({'success': False, 'message': f'文件更新失败: {str(e)}'})
         
-        if success:
-            return jsonify({'success': True, 'message': 'Cookie更新成功！'})
-        else:
-            return jsonify({'success': False, 'message': 'Cookie更新失败'})
     except Exception as e:
+        print(f"Cookie更新接口错误: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})
 
 @app.route('/api/booking/start', methods=['POST'])
@@ -196,9 +284,18 @@ def booking_status_api():
 def get_current_cookie():
     """获取当前Cookie状态"""
     try:
+        print("获取当前Cookie状态...")
+        
         # 读取qiangpiao.py文件中的Cookie
-        with open('qiangpiao.py', 'r', encoding='utf-8') as f:
-            content = f.read()
+        try:
+            with open('qiangpiao.py', 'r', encoding='utf-8') as f:
+                content = f.read()
+        except Exception as e:
+            print(f"读取文件失败: {e}")
+            return jsonify({
+                'success': False, 
+                'message': f'读取qiangpiao.py文件失败: {str(e)}'
+            })
         
         # 提取当前Cookie
         start_marker = 'raw_cookie = """'
@@ -208,7 +305,7 @@ def get_current_cookie():
         if start_idx == -1:
             return jsonify({
                 'success': False, 
-                'message': '未找到Cookie定义'
+                'message': '未找到Cookie定义，请检查qiangpiao.py文件格式'
             })
         
         start_idx += len(start_marker)
@@ -217,25 +314,47 @@ def get_current_cookie():
         if end_idx == -1:
             return jsonify({
                 'success': False, 
-                'message': 'Cookie格式错误'
+                'message': 'Cookie格式错误，缺少结束标记'
             })
         
         current_cookie_text = content[start_idx:end_idx].strip()
+        print(f"提取到Cookie文本长度: {len(current_cookie_text)}")
         
         # 解析Cookie字段
-        cookie_fields = extract_cookies_from_text(current_cookie_text)
+        try:
+            cookie_fields = extract_cookies_from_text(current_cookie_text)
+            print(f"解析到Cookie字段: {len(cookie_fields)} 个")
+        except Exception as e:
+            print(f"Cookie解析失败: {e}")
+            return jsonify({
+                'success': False,
+                'message': f'Cookie解析失败: {str(e)}',
+                'cookie_text': current_cookie_text
+            })
         
         # 测试Cookie有效性
-        is_valid, message = test_cookie_validity(cookie_fields)
+        print("测试当前Cookie有效性...")
+        try:
+            is_valid, message = test_cookie_validity(cookie_fields)
+            print(f"当前Cookie测试结果: {is_valid}, 消息: {message}")
+        except Exception as e:
+            print(f"Cookie测试失败: {e}")
+            is_valid = False
+            message = f"测试失败: {str(e)}"
         
-        # 获取文件修改时间作为最后更新时间
-        import os
+        # 获取文件修改时间
         last_update = None
         try:
+            import os
             stat = os.stat('qiangpiao.py')
             last_update = datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
-        except:
-            pass
+        except Exception as e:
+            print(f"获取文件修改时间失败: {e}")
+        
+        # 检查关键Cookie字段
+        key_cookies = ['route', 'JSESSIONID', 'MOD_AUTH_CAS']
+        found_keys = [key for key in key_cookies if key in cookie_fields]
+        missing_keys = [key for key in key_cookies if key not in cookie_fields]
         
         return jsonify({
             'success': True,
@@ -243,11 +362,21 @@ def get_current_cookie():
             'message': message,
             'cookie_count': len(cookie_fields),
             'cookie_text': current_cookie_text,
-            'cookie_fields': cookie_fields,
-            'last_update': last_update
+            'cookie_fields': {k: v[:50] + '...' if len(v) > 50 else v 
+                            for k, v in cookie_fields.items()},
+            'last_update': last_update,
+            'analysis': {
+                'total_fields': len(cookie_fields),
+                'key_fields_found': found_keys,
+                'key_fields_missing': missing_keys,
+                'status': 'good' if len(found_keys) >= 1 else 'warning'
+            }
         })
         
     except Exception as e:
+        print(f"获取Cookie状态失败: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'message': f'获取Cookie失败: {str(e)}'
@@ -420,6 +549,45 @@ def update_campus_account_api():
             return jsonify({'success': False, 'message': '账户信息更新失败，无法保存到文件'})
     except Exception as e:
         return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})
+
+@app.route('/api/cookie/clear', methods=['POST'])
+def clear_cookie():
+    """清空Cookie"""
+    try:
+        print("开始清空Cookie...")
+        
+        # 导入cookie管理器的清空函数
+        try:
+            from cookie_manager import clear_cookie_in_file
+            success = clear_cookie_in_file()
+            
+            if success:
+                print("✅ Cookie清空成功")
+                return jsonify({
+                    'success': True, 
+                    'message': 'Cookie已清空！请重新获取Cookie'
+                })
+            else:
+                print("❌ Cookie清空失败")
+                return jsonify({'success': False, 'message': 'Cookie清空失败'})
+                
+        except ImportError as e:
+            print(f"导入cookie_manager失败: {e}")
+            # 如果导入失败，直接更新为空Cookie
+            success = update_cookie_in_file("")
+            if success:
+                return jsonify({
+                    'success': True, 
+                    'message': 'Cookie已清空！'
+                })
+            else:
+                return jsonify({'success': False, 'message': 'Cookie清空失败'})
+        
+    except Exception as e:
+        print(f"Cookie清空接口错误: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': f'清空失败: {str(e)}'})
 
 def booking_worker(stop_event):
     """抢票工作线程"""

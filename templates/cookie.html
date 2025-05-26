@@ -176,7 +176,8 @@
         .input-group {
             display: flex;
             width: 100%;
-            align-items: center; /* 保持：用于垂直对齐 */
+            align-items: center;
+            /* 保持：用于垂直对齐 */
         }
 
         .input-group .form-control {
@@ -184,27 +185,34 @@
             flex: 1;
             /* 继承 .form-control 的 padding, font-size, border 等样式 */
             /* 设置显式高度以确保对齐 */
-            height: 40px; /* 您可以根据需要调整此值 */
+            height: 40px;
+            /* 您可以根据需要调整此值 */
             /* .form-control 已有 box-sizing: border-box; */
-            margin: 0; /* 确保输入框也没有意外的边距 */
+            margin: 0;
+            /* 确保输入框也没有意外的边距 */
             /* 新增：设置行高以改善文本垂直居中感 */
-            line-height: 16px; /* 计算值: 40px - (2*10px padding) - (2*2px border) */
+            line-height: 16px;
+            /* 计算值: 40px - (2*10px padding) - (2*2px border) */
         }
 
         .input-group .btn {
             border-radius: 0 8px 8px 0;
             flex-shrink: 0;
-            padding: 10px 15px; 
-            font-size: 12px; 
+            padding: 10px 15px;
+            font-size: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             /* 设置显式高度并确保 box-sizing */
-            height: 40px; /* 与输入框高度一致 */
-            box-sizing: border-box; /* 确保 height 包含 padding 和 border */
-            margin: 0; /* 新增：移除或重置按钮的外边距 */
+            height: 40px;
+            /* 与输入框高度一致 */
+            box-sizing: border-box;
+            /* 确保 height 包含 padding 和 border */
+            margin: 0;
+            /* 新增：移除或重置按钮的外边距 */
             /* 新增：设置行高以改善文本垂直居中感 */
-            line-height: 16px; /* 计算值: 40px - (2*10px padding) - (2*2px border) */
+            line-height: 16px;
+            /* 计算值: 40px - (2*10px padding) - (2*2px border) */
         }
 
         .cookie-textarea {
@@ -903,6 +911,126 @@
             }
         }
 
+        // 测试Cookie
+        function testCookie() {
+            const cookieText = document.getElementById('cookieText').value.trim();
+
+            if (!cookieText) {
+                showManualResult('请输入Cookie内容', 'warning');
+                return;
+            }
+
+            showManualResult(`
+                <div class="spinner"></div>
+                正在测试Cookie有效性...
+            `, 'info');
+
+            fetch('/api/cookie/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cookie: cookieText })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        const details = data.details || {};
+                        showManualResult(`
+                        ✅ <strong>Cookie测试成功！</strong>
+                        <br><small style="color: #666;">
+                            解析字段: ${data.cookie_count} 个
+                            ${data.found_keys ? `<br>关键字段: ${data.found_keys.join(', ')}` : ''}
+                            <br>验证信息: ${data.message}
+                        </small>
+                    `, 'success');
+                    } else {
+                        showManualResult(`
+                        ❌ <strong>Cookie测试失败：</strong>${data.message}
+                        <br><small style="color: #666;">
+                            ${data.cookie_count ? `解析字段: ${data.cookie_count} 个` : ''}
+                            ${data.found_keys && data.found_keys.length > 0 ? `<br>找到字段: ${data.found_keys.join(', ')}` : ''}
+                        </small>
+                    `, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('测试Cookie错误:', error);
+                    showManualResult(`❌ <strong>测试失败：</strong>${error.message}`, 'danger');
+                });
+        }
+
+        // 更新Cookie
+        function updateCookie() {
+            const cookieText = document.getElementById('cookieText').value.trim();
+
+            if (!cookieText) {
+                showManualResult('请输入Cookie内容', 'warning');
+                return;
+            }
+
+            if (!confirm('确认要更新Cookie吗？这将覆盖当前的Cookie配置。')) {
+                return;
+            }
+
+            showManualResult(`
+                <div class="spinner"></div>
+                正在更新Cookie...
+            `, 'info');
+
+            fetch('/api/cookie/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cookie: cookieText })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        showManualResult(`
+                        ✅ <strong>Cookie更新成功！</strong>
+                        <br><small style="color: #666;">
+                            ${data.cookie_count ? `更新字段: ${data.cookie_count} 个` : ''}
+                            <br>${data.message}
+                        </small>
+                    `, 'success');
+
+                        // 更新成功后刷新状态
+                        setTimeout(() => {
+                            refreshCookieStatus();
+                            document.getElementById('cookieText').value = ''; // 清空输入框
+                        }, 1000);
+                    } else {
+                        showManualResult(`
+                        ❌ <strong>Cookie更新失败：</strong>${data.message}
+                        <br><small style="color: #666;">
+                            ${data.test_result ? `测试结果: ${data.test_result}` : ''}
+                        </small>
+                    `, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('更新Cookie错误:', error);
+                    showManualResult(`❌ <strong>更新失败：</strong>${error.message}`, 'danger');
+                });
+        }
+
+        // 清空Cookie输入框
+        function clearCookieText() {
+            if (confirm('确认要清空Cookie输入框吗？')) {
+                document.getElementById('cookieText').value = '';
+                document.getElementById('manualResult').style.display = 'none';
+            }
+        }
+
+        // 显示自动获取结果
         function showAutoGetResult(message, type) {
             const resultDiv = document.getElementById('autoGetResult');
             const alertDiv = document.getElementById('autoGetAlert');
@@ -913,6 +1041,7 @@
             resultDiv.style.display = 'block';
         }
 
+        // 显示手动更新结果
         function showManualResult(message, type) {
             const resultDiv = document.getElementById('manualResult');
             const alertDiv = document.getElementById('manualAlert');
